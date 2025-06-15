@@ -25,10 +25,9 @@ DISCORD_TOKEN=
   - [https://www.python.org/downloads/release/python-3810/]
 
 
-- Install everything in requirements.txt using commands listed below
+- Install everything in requirements.txt using command listed below
 ```
-pip install -U discord.py
-pip install python-dotenv
+pip install -r requirements.txt
 ```
 
 - Get VSCode or PyCharm
