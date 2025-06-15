@@ -1,2 +1,2 @@
 # BookClub
-Bot for potential book club for flock
+Bot for potential book club for flock test
