@@ -18,6 +18,7 @@ logging.basicConfig(
 # Set intents
 intents = discord.Intents.default()
 intents.messages = True
+intents.message_content = True
 intents.members = True
 
 # Create bot
