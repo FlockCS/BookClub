@@ -8,6 +8,15 @@ Description
 
 ## Getting Started
 
+- Clone this repository
+- Make a .env file
+- In the .env file:
+```
+# .env
+
+DISCORD_TOKEN=
+```
+- Contact me for the token
 
 
 ### Installing
@@ -23,6 +32,7 @@ pip install python-dotenv
 ```
 
 - Get VSCode or PyCharm
+
 
 
 ### Executing program
