@@ -1,23 +1,36 @@
-# bot.py
 import os
 import logging
 import discord
 from dotenv import load_dotenv
 from discord.ext import commands
 
+# Load .env token
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+# Configure logging
+logging.basicConfig(
+    filename='discord.log',
+    level=logging.DEBUG,
+    format='%(asctime)s:%(levelname)s:%(name)s: %(message)s'
+)
+
+# Set intents
 intents = discord.Intents.default()
 intents.messages = True
 intents.members = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)    
+# Create bot
+bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
     print(f"Ready, {bot.user.name}")
 
+@bot.command(name='hello')
+async def hello_world(ctx):
+    response = "Hi Flock, this is the book bot to track books."
+    await ctx.send(response)
 
-bot.run(TOKEN, log_handler=handler, log_level=logging.DEBUG)
+# Run bot (without log_handler/log_level)
+bot.run(TOKEN)
