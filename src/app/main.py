@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request
 from mangum import Mangum
 from asgiref.wsgi import WsgiToAsgi
 from discord_interactions import verify_key_decorator
+import requests
 
 DISCORD_PUBLIC_KEY = os.environ.get("DISCORD_PUBLIC_KEY")
 
@@ -10,6 +11,7 @@ app = Flask(__name__)
 asgi_app = WsgiToAsgi(app)
 handler = Mangum(asgi_app)
 
+GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes"
 
 @app.route("/", methods=["POST"])
 async def interactions():
@@ -21,23 +23,47 @@ async def interactions():
 @verify_key_decorator(DISCORD_PUBLIC_KEY)
 def interact(raw_request):
     if raw_request["type"] == 1:  # PING
-        response_data = {"type": 1}  # PONG
-    else:
-        data = raw_request["data"]
-        command_name = data["name"]
+        return jsonify({"type": 1})  # PONG
 
-        if command_name == "hello":
-            message_content = "Hello there!"
-        elif command_name == "echo":
-            original_message = data["options"][0]["value"]
-            message_content = f"Echoing: {original_message}"
+    data = raw_request["data"]
+    command_name = data["name"]
 
-        response_data = {
-            "type": 4,
-            "data": {"content": message_content},
+    if command_name == "hello":
+        message_content = "Hello there!"
+
+    elif command_name == "echo":
+        original_message = data["options"][0]["value"]
+        message_content = f"Echoing: {original_message}"
+
+    elif command_name == "search":
+        book_name = data["options"][0]["value"]
+
+        # Query the Google Books API
+        params = {
+            "q": f"intitle:{book_name}",
+            "maxResults": 3  # Limit to top 3 results
         }
+        response = requests.get(GOOGLE_BOOKS_API_URL, params=params)
+        books = response.json().get("items", [])
 
-    return jsonify(response_data)
+        if not books:
+            message_content = f"No books found for '{book_name}'."
+        else:
+            message_lines = []
+            for book in books:
+                info = book["volumeInfo"]
+                title = info.get("title", "No title")
+                authors = ", ".join(info.get("authors", ["Unknown author"]))
+                message_lines.append(f"**{title}** by {authors}")
+            message_content = "\n".join(message_lines)
+
+    else:
+        message_content = "Unknown command."
+
+    return jsonify({
+        "type": 4,
+        "data": {"content": message_content},
+    })
 
 
 if __name__ == "__main__":

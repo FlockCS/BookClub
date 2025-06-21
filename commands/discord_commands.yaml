@@ -8,3 +8,12 @@
       description: The message to echo back.
       type: 3 # string
       required: true
+
+- name: search
+  description: Search for a book
+  options:
+    - name: name
+      description: Search for a book
+      type: 3 # string
+      required: true
+ 
