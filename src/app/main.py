@@ -41,7 +41,7 @@ def interact(raw_request):
         # Query the Google Books API
         params = {
             "q": f"intitle:{book_name}",
-            "maxResults": 3  # Limit to top 3 results
+            "maxResults": 5  # Limit to top 5 results
         }
         response = requests.get(GOOGLE_BOOKS_API_URL, params=params)
         books = response.json().get("items", [])
@@ -49,13 +49,47 @@ def interact(raw_request):
         if not books:
             message_content = f"No books found for '{book_name}'."
         else:
-            message_lines = []
+            sectionsReturn = []
+
             for book in books:
                 info = book["volumeInfo"]
                 title = info.get("title", "No title")
                 authors = ", ".join(info.get("authors", ["Unknown author"]))
-                message_lines.append(f"**{title}** by {authors}")
-            message_content = "\n".join(message_lines)
+                desc = info.get("description", "")
+                thumbnail = info.get("imageLinks", {}).get("thumbnail")
+
+                short_desc = (desc[:150] + "...") if len(desc) > 150 else desc
+
+                section = {
+                    "type": 9,
+                    "components": [
+                        {"type": 10, "content": f"**{title}** by {authors}"},
+                    ]
+                }
+                if short_desc:
+                    section["components"].append({
+                        "type": 10,
+                        "content": short_desc
+                    })
+
+                if thumbnail:
+                    section["accessory"] = {
+                        "type": 11,
+                        "media": {
+                            "url": thumbnail
+                        }
+                    }
+
+                sectionsReturn.append(section)
+            
+            return jsonify({
+                "type": 4,
+                "data": {
+                    "flags": 32768,
+                    "components": sectionsReturn
+                }
+            })
+            
 
     else:
         message_content = "Unknown command."
