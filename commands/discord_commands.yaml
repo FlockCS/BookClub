@@ -12,8 +12,19 @@
 - name: search
   description: Search for a book
   options:
-    - name: name
-      description: Search for a book
+    - name: title
+      description: Search term must appear in the title
       type: 3 # string
-      required: true
- 
+      required: false
+    - name: author
+      description: Search term must appear in the author name
+      type: 3 # string
+      required: false
+    - name: publisher
+      description: Search term must appear in the publisher
+      type: 3 # string
+      required: false
+    - name: isbn
+      description: Search by ISBN number
+      type: 3 # string
+      required: false
