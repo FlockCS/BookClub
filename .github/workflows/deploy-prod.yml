@@ -34,7 +34,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run discord-commands.py
-        run: python commands/discord-commands.py prod
+        run: python ./commands/discord-commands.py prod
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
