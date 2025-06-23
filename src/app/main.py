@@ -82,6 +82,22 @@ def interact(raw_request):
 
                 sectionsReturn.append(section)
             
+            button_row = {
+                "type": 1,
+                "components": []
+            }
+
+            for idx, book in enumerate(books[:5]):
+                title = book["volumeInfo"].get("title", "Book")
+                button_row["components"].append({
+                    "type": 2,
+                    "label": f"Select {idx+1}",
+                    "style": 1,
+                    "custom_id": f"select_book_{idx}"
+            })
+            
+            sectionsReturn.append(button_row)
+            
             return jsonify({
                 "type": 4,
                 "data": {
