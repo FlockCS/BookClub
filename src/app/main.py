@@ -125,7 +125,7 @@ def interact(raw_request):
                 sectionsReturn.append(section)
             
             ''' 
-            @TODO: Polish Button Feature
+            @TODO: Polish Button Feature to select which books the book club is reading currently and upload to DynamoDB
             button_row = {
                 "type": 1,
                 "components": []
