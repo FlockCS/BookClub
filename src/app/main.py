@@ -1,27 +1,13 @@
-import os
 from flask import Flask, jsonify, request
 from mangum import Mangum
 from asgiref.wsgi import WsgiToAsgi
 from discord_interactions import verify_key_decorator
 import requests
-import random
-import boto3
-from datetime import datetime, timezone
+from dynamodb import put_book
+from config import DISCORD_PUBLIC_KEY, GOOGLE_BOOKS_API_URL
+from utils import random_greeting
 
-# vars
-DISCORD_PUBLIC_KEY = os.environ.get("DISCORD_PUBLIC_KEY")
-GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes"
-greetings = [
-    "Hello there!",
-    "Hi!",
-    "Good to see you!",
-    "Greetings!",
-    "Hey, how are you?",
-    "Nice to meet you!",
-    "Hello, friend!",
-    "Hi, hope you’re doing well!",
-]
-emojis = ["👋", "😊", "🙌", "🌟", "🤗", "😄", "✨", "😎", "😁"]
+
 pending_selections = {}
 current_books_list = {}
 
@@ -29,34 +15,6 @@ current_books_list = {}
 app = Flask(__name__)
 asgi_app = WsgiToAsgi(app)
 handler = Mangum(asgi_app)
-dynamodb = boto3.resource("dynamodb")
-# @TODO: Change this after you have tested to accomodate for prod
-book_table = dynamodb.Table("Alpha-BookClubHistory")
-
-def save_book_to_dynamodb(guild_id, user_id, selected_book, discussion_date):
-    # Extract info from selected_book (adjust fields as per your data)
-    volume_info = selected_book.get("volumeInfo", {})
-    title = volume_info.get("title", "Unknown Title")
-    authors = ", ".join(volume_info.get("authors", ["Unknown Author"]))
-    isbn_list = volume_info.get("industryIdentifiers", [])
-    isbn_13 = next((id["identifier"] for id in isbn_list if id["type"] == "ISBN_13"), None)
-    isbn_10 = next((id["identifier"] for id in isbn_list if id["type"] == "ISBN_10"), None)
-    isbn = isbn_13 or isbn_10 or "N/A"
-
-    # Create a unique primary key for current selection (e.g., "CURRENT_BOOK")
-
-    # Put item into DynamoDB table
-    book_table.put_item(
-        Item={
-            "guild_id": guild_id,  # Partition key (table schema dependent)
-            "discussion_date": discussion_date,
-            "title": title,
-            "authors": authors,
-            "isbn": isbn,
-            "set_by_user": user_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-    )
 
 def handle_button_click(raw_request):
     user_id = raw_request["member"]["user"]["id"]
@@ -113,7 +71,7 @@ def handle_modal_submit(raw_request):
         })
 
     # Now save selected_book + discussion_date to DynamoDB (your save logic here)
-    save_book_to_dynamodb(raw_request.get("guild_id"), user_id, selected_book, discussion_date)
+    put_book(raw_request.get("guild_id"), user_id, selected_book, discussion_date)
 
     # Remove the pending selection
     del pending_selections[user_id]
@@ -133,29 +91,34 @@ async def interactions():
 
 # command handler
 @verify_key_decorator(DISCORD_PUBLIC_KEY)
-def interact(raw_request):
-    if raw_request["type"] == 1:  # PING
-        return jsonify({"type": 1})  # PONG
-    
-    # data vars from raw request
+def interact(raw_request):    
+    # @NOTE data vars from raw request that are needed
     data = raw_request["data"]
+    request_type = raw_request["type"]
     user_id = raw_request["member"]["user"]["id"]
+    guild_id = raw_request.get("guild_id")
     
-    # button click
-    if raw_request["type"] == 3:
+    # ping request
+    if request_type == 1:  # PING
+        return jsonify({"type": 1})  # PONG
+
+    # button request
+    if request_type == 3:
         custom_id = raw_request["data"]["custom_id"]
         if custom_id.startswith("select_book_"):
             return handle_button_click(raw_request)
         
-    # Handle modal submit
-    if raw_request["type"] == 5:
+    # modal request
+    if request_type == 5:
         custom_id = raw_request["data"]["custom_id"]
         if custom_id == "select_discussion_date":
             return handle_modal_submit(raw_request)
 
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
     
+
     command_name = data["name"]
+
 
     # Hello Command
     if command_name == "hello":
@@ -282,13 +245,6 @@ def interact(raw_request):
         "data": {"content": message_content},
     })
 
-
-
-# Random Greeting generator for when a user uses /hello
-def random_greeting():
-    message = random.choice(greetings)
-    emoji = random.choice(emojis)
-    return f"{message} {emoji}"
 
 # Main Method
 if __name__ == "__main__":
