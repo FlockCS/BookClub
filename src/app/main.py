@@ -159,7 +159,7 @@ def interact(raw_request):
         "data": {"content": message_content},
     })
 
-# Random Greeting generator
+# Random Greeting generator for when a user uses /hello
 def random_greeting():
     message = random.choice(greetings)
     emoji = random.choice(emojis)
