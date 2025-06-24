@@ -35,6 +35,10 @@ jobs:
 
       - name: Run discord-commands.py
         run: python commands/register_commands.py prod
+        env: 
+          PROD_DISCORD_TOKEN: ${{ secrets.PROD_DISCORD_TOKEN }}
+        
+
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
