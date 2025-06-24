@@ -94,6 +94,7 @@ async def interactions():
 def interact(raw_request):    
     # @NOTE data vars from raw request that are needed
     data = raw_request["data"]
+    command_name = data["name"]
     request_type = raw_request["type"]
     user_id = raw_request["member"]["user"]["id"]
     guild_id = raw_request.get("guild_id")
@@ -115,10 +116,6 @@ def interact(raw_request):
             return handle_modal_submit(raw_request)
 
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
-    
-
-    command_name = data["name"]
-
 
     # Hello Command
     if command_name == "hello":
@@ -239,12 +236,11 @@ def interact(raw_request):
             
     else:
         message_content = "Unknown command."
-
+    
     return jsonify({
         "type": 4,
         "data": {"content": message_content},
     })
-
 
 # Main Method
 if __name__ == "__main__":
