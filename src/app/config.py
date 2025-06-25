@@ -14,3 +14,5 @@ GREETINGS = [
     "Hi, hope you’re doing well!",
 ]
 EMOJIS = ["👋", "😊", "🙌", "🌟", "🤗", "😄", "✨", "😎", "😁"]
+
+IN_DEVELOPMENT = "Feature currently under development. 🔧"

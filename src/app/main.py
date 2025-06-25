@@ -3,8 +3,8 @@ from mangum import Mangum
 from asgiref.wsgi import WsgiToAsgi
 from discord_interactions import verify_key_decorator
 import requests
-from dynamodb import put_book
-from config import DISCORD_PUBLIC_KEY, GOOGLE_BOOKS_API_URL
+from dynamodb import put_book, get_current_book
+from config import DISCORD_PUBLIC_KEY, GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT
 from utils import random_greeting
 
 
@@ -18,43 +18,55 @@ handler = Mangum(asgi_app)
 
 def handle_button_click(raw_request):
     user_id = raw_request["member"]["user"]["id"]
-    custom_id = raw_request["data"]["custom_id"]  # e.g. "select_book_2"
+    custom_id = raw_request["data"]["custom_id"]
 
-    # Extract selected book index
     selected_idx = int(custom_id.split("_")[-1])
-    selected_book = current_books_list[selected_idx]  # keep this list available globally or in context
+    selected_book = current_books_list[selected_idx]
 
-    # Store in in-memory dict
     pending_selections[user_id] = selected_book
 
-    # Respond with modal to pick discussion date
     modal = {
-      "type": 9,
-      "custom_id": "select_discussion_date",
-      "title": "Pick Discussion Date",
-      "components": [
-        {
-          "type": 1,
-          "components": [
+        "custom_id": "select_discussion_date_and_pages",
+        "title": "Plan Discussion",
+        "components": [
             {
-              "type": 4,
-              "custom_id": "discussion_date",
-              "style": 1,
-              "label": "Discussion Date (YYYY-MM-DD)",
-              "min_length": 10,
-              "max_length": 10,
-              "placeholder": "2025-07-01",
-              "required": True
+                "type": 1,  # Action row
+                "components": [
+                    {
+                        "type": 4,  # Text input
+                        "custom_id": "discussion_date",
+                        "style": 1,
+                        "label": "Discussion Date (YYYY-MM-DD)",
+                        "min_length": 10,
+                        "max_length": 10,
+                        "placeholder": "2025-07-01",
+                        "required": True
+                    }
+                ]
+            },
+            {
+                "type": 1,  # Another action row
+                "components": [
+                    {
+                        "type": 4,  # Text input
+                        "custom_id": "pages_or_chapters",
+                        "style": 1,
+                        "label": "Pages or Chapters to Read",
+                        "min_length": 1,
+                        "max_length": 100,
+                        "placeholder": "e.g. Chapters 1-3 or Pages 1-50",
+                        "required": True
+                    }
+                ]
             }
-          ]
-        }
-      ]
+        ]
     }
 
     return jsonify({
-      "type": 9,  # Modal response type
-      "data": modal
+        "type": 9,
+        "data": modal
     })
+
 
 def handle_modal_submit(raw_request):
     user_id = raw_request["member"]["user"]["id"]
@@ -126,6 +138,10 @@ def interact(raw_request):
         original_message = data["options"][0]["value"]
         message_content = f"Echoing: {original_message}"
 
+    elif command_name == "current":
+        book = get_current_book(guild_id)
+        message_content = IN_DEVELOPMENT
+        
     elif command_name == "search":
         # building a dictionary to obtain search values (ex: key=Title: value=Book Title, key=Author: Value: Author)
         print(data)

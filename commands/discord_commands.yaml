@@ -28,3 +28,8 @@
       description: Search by ISBN number
       type: 3 # string
       required: false
+
+- name: current
+  description: Get current book being read and scheduled meeting date
+
+
