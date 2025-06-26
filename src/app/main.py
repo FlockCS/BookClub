@@ -5,7 +5,7 @@ from discord_interactions import verify_key_decorator
 import requests
 from dynamodb import put_book, get_current_book
 from config import DISCORD_PUBLIC_KEY, GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT
-from utils import random_greeting
+from utils import is_valid_future_date, random_greeting
 
 
 pending_selections = {}
@@ -17,6 +17,18 @@ asgi_app = WsgiToAsgi(app)
 handler = Mangum(asgi_app)
 
 def handle_button_click(raw_request):
+    guild_id = raw_request.get("guild_id")
+    # do a check to make sure there isnt a current book already
+    if get_current_book(guild_id):
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": "📚 A current book has been set for this server! Please use /current to see it!",
+                "flags": 64  # Ephemeral
+            }
+        })
+
+
     user_id = raw_request["member"]["user"]["id"]
     custom_id = raw_request["data"]["custom_id"]
 
@@ -26,7 +38,7 @@ def handle_button_click(raw_request):
     pending_selections[user_id] = selected_book
 
     modal = {
-        "custom_id": "select_discussion_date_and_pages",
+        "custom_id": "select_schedule",
         "title": "Plan Discussion",
         "components": [
             {
@@ -36,10 +48,10 @@ def handle_button_click(raw_request):
                         "type": 4,  # Text input
                         "custom_id": "discussion_date",
                         "style": 1,
-                        "label": "Discussion Date (YYYY-MM-DD)",
+                        "label": "Discussion Date (MM-DD-YYYY)",
                         "min_length": 10,
                         "max_length": 10,
-                        "placeholder": "2025-07-01",
+                        "placeholder": "03-28-2003",
                         "required": True
                     }
                 ]
@@ -72,8 +84,17 @@ def handle_modal_submit(raw_request):
     user_id = raw_request["member"]["user"]["id"]
     values = raw_request["data"]["components"]
     # Extract date from modal inputs:
-    discussion_date = values[0]["components"][0]["value"]
+    discussion_date = None
+    pages_or_chapters = None
 
+    for action_row in raw_request["data"]["components"]:
+        for component in action_row["components"]:
+            if component["custom_id"] == "discussion_date":
+                discussion_date = component["value"]
+            elif component["custom_id"] == "pages_or_chapters":
+                pages_or_chapters = component["value"]
+
+    # conditional check if there is a selected book
     selected_book = pending_selections.get(user_id)
 
     if not selected_book:
@@ -82,9 +103,21 @@ def handle_modal_submit(raw_request):
             "data": {"content": "❗ No book selected to save. Please try again."}
         })
 
-    # Now save selected_book + discussion_date to DynamoDB (your save logic here)
-    put_book(raw_request.get("guild_id"), user_id, selected_book, discussion_date)
+    # validate discussion date and pages or chapters
+    if not is_valid_future_date(discussion_date):
+        print("TEST")
+        return jsonify({
+            "type": 4,  # Channel message with source (ephemeral)
+            "data": {
+                "content": "❌ Please enter a valid future date in MM-DD-YYYY format.",
+                "flags": 64  # Ephemeral message
+            }
+        })
 
+    # Now save selected_book + discussion_date to DynamoDB (your save logic here)
+    put_book(raw_request.get("guild_id"), user_id, selected_book, discussion_date, pages_or_chapters)
+
+    print("Post Put Book")
     # Remove the pending selection
     del pending_selections[user_id]
 
@@ -123,7 +156,7 @@ def interact(raw_request):
     # modal request
     if request_type == 5:
         custom_id = raw_request["data"]["custom_id"]
-        if custom_id == "select_discussion_date":
+        if custom_id == "select_schedule":
             return handle_modal_submit(raw_request)
 
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
@@ -140,7 +173,27 @@ def interact(raw_request):
 
     elif command_name == "current":
         book = get_current_book(guild_id)
-        message_content = IN_DEVELOPMENT
+        print(book)
+        # 1️⃣ Nothing in DynamoDB yet
+        if book is None:
+            return jsonify({
+                "type": 4,
+                "data": {
+                    "content": "📚 No current book has been set for this server. Use `/search` to pick one!",
+                    "flags": 64        # Ephemeral
+                }
+            })
+
+        # 2️⃣ Pull the fields we stored
+        title            = book.get("title", "Unknown Title")
+        authors          = book.get("authors", "Unknown Author")
+        isbn             = book.get("isbn", "N/A")
+        discussion_date  = book.get("discussion_date", "TBD")
+        pages            = book.get("set_page_or_chapter", "—")
+
+        # Optional: if you stored a cover URL in DynamoDB
+        thumbnail_url    = book.get("thumbnail")      # may be None
+        message_content = f"Currently Reading: {title} by {authors}"
         
     elif command_name == "search":
         # building a dictionary to obtain search values (ex: key=Title: value=Book Title, key=Author: Value: Author)

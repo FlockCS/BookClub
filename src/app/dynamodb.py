@@ -1,12 +1,12 @@
-import boto3
-from datetime import datetime, timezone
+import boto3 # type: ignore
+from datetime import datetime, timezone, date
 
 dynamodb = boto3.resource("dynamodb")
 # @TODO: Change this after you have tested to accomodate for prod
 book_table = dynamodb.Table("Alpha-BookClubHistory")
 
 # @TODO: Make this function type safe
-def put_book(guild_id, user_id, selected_book, discussion_date):
+def put_book(guild_id, user_id, selected_book, discussion_date, pages_or_chapters):
     # Extract info from selected_book (adjust fields as per your data)
     volume_info = selected_book.get("volumeInfo", {})
     title = volume_info.get("title", "Unknown Title")
@@ -27,10 +27,14 @@ def put_book(guild_id, user_id, selected_book, discussion_date):
             "authors": authors,
             "isbn": isbn,
             "set_by_user": user_id,
+            "set_page_or_chapter": pages_or_chapters,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )
 
 # Get the current book being read as well the next scheduled date
 def get_current_book(guild_id):
-    return None
+    response = book_table.get_item(Key={"guild_id": guild_id})
+    return response.get("Item")
+
+

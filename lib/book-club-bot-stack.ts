@@ -30,7 +30,6 @@ export class BookClubBotStack extends cdk.Stack {
     const historyTable = new dynamodb.Table(this, `${props.stage}BookHistory`, {
       tableName: `${props.stage}-BookClubHistory`,
       partitionKey: { name: 'guild_id', type: dynamodb.AttributeType.STRING },
-      sortKey:      { name: 'discussion_date', type: dynamodb.AttributeType.STRING },
       billingMode:  dynamodb.BillingMode.PAY_PER_REQUEST,  // on-demand
       removalPolicy: cdk.RemovalPolicy.RETAIN,             // keep data if stack is destroyed
     });
