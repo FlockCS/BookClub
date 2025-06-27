@@ -193,7 +193,44 @@ def interact(raw_request):
 
         # Optional: if you stored a cover URL in DynamoDB
         thumbnail_url    = book.get("thumbnail")      # may be None
-        message_content = f"Currently Reading: {title} by {authors}"
+        embed = {
+            "title": title,
+            "description": f"Author: {authors}\n"
+                        f"ISBN: {isbn}\n"
+                        f"Discussion: {discussion_date}\n"
+                        f"Pages / chapter: {pages}",
+        }
+        if thumbnail_url:
+            embed["thumbnail"] = {"url": thumbnail_url}
+
+        # ─── action‑row with two buttons ────────────────────────
+        button_row = {
+            "type": 1,           # ACTION_ROW
+            "components": [
+                {
+                    "type": 2,             # BUTTON
+                    "label": "Reschedule",
+                    "style": 1,            # Primary
+                    "custom_id": "reschedule_book"
+                },
+                {
+                    "type": 2,
+                    "label": "Finish",
+                    "style": 1,
+                    "custom_id": "finish_book"
+                }
+            ]
+        }
+
+        # ─── send an ephemeral message back to the user ─────────
+        return jsonify({
+            "type": 4,  # CHANNEL_MESSAGE_WITH_SOURCE
+            "data": {
+                "embeds": [embed],          # rich message with book info
+                "components": [button_row]  # action row with buttons
+            }
+        })
+
         
     elif command_name == "search":
         # building a dictionary to obtain search values (ex: key=Title: value=Book Title, key=Author: Value: Author)
@@ -292,7 +329,7 @@ def interact(raw_request):
                     "label": f"{idx+1}",
                     "style": 1,
                     "custom_id": f"select_book_{idx}"
-            })
+                })
             sectionsReturn.append(button_row)
             
             
