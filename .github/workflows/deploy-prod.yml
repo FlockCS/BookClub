@@ -52,3 +52,5 @@ jobs:
       
       - name: Deploy CDK stack
         run: cdk deploy ProdBookClubBotStack --require-approval never
+        env:
+          ENVIRONMENT: prod

@@ -1,9 +1,14 @@
 import boto3 # type: ignore
+import os
 from datetime import datetime, timezone, date
 
 dynamodb = boto3.resource("dynamodb")
-# @TODO: Change this after you have tested to accomodate for prod
-book_table = dynamodb.Table("Alpha-BookClubHistory")
+env = os.getenv("ENVIRONMENT", "alpha")  # default to alpha if not set
+
+if env == "prod":
+    book_table = dynamodb.Table("Prod-BookClubHistory")
+else:
+    book_table = dynamodb.Table("Alpha-BookClubHistory")
 
 # @TODO: Make this function type safe
 def put_book(guild_id, user_id, selected_book, discussion_date, pages_or_chapters):
