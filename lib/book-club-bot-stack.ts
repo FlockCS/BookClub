@@ -1,6 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 
 export interface BookClubBotStackProps extends cdk.StackProps {
   stage: string;
@@ -24,6 +25,20 @@ export class BookClubBotStack extends cdk.Stack {
         },
       }
     );
+
+    // Create the table: one partition key (guild) + one sort key (ISO date)
+    const historyTable = new dynamodb.Table(this, `${props.stage}BookHistory`, {
+      tableName: `${props.stage}-BookClubHistory`,
+      partitionKey: { name: 'guild_id', type: dynamodb.AttributeType.STRING },
+      billingMode:  dynamodb.BillingMode.PAY_PER_REQUEST,  // on-demand
+      removalPolicy: cdk.RemovalPolicy.RETAIN,             // keep data if stack is destroyed
+    });
+
+    // Let the Lambda read/write the table
+    historyTable.grantReadWriteData(dockerFunction);
+
+    // Pass table name to the container
+    dockerFunction.addEnvironment('BOOK_TABLE', historyTable.tableName);
 
     const functionUrl = dockerFunction.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
