@@ -22,6 +22,7 @@ export class BookClubBotStack extends cdk.Stack {
         architecture: lambda.Architecture.X86_64,
         environment: {
           DISCORD_PUBLIC_KEY: props.discordPublicKey,
+          ENVIRONMENT: props.stage
         },
       }
     );
