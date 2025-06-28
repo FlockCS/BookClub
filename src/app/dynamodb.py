@@ -3,12 +3,9 @@ import os
 from datetime import datetime, timezone, date
 
 dynamodb = boto3.resource("dynamodb")
-env = os.getenv("ENVIRONMENT", "alpha")  # default to alpha if not set
+table_name = os.environ["BOOK_TABLE"]
+book_table = dynamodb.Table(table_name)
 
-if env == "prod":
-    book_table = dynamodb.Table("Prod-BookClubHistory")
-else:
-    book_table = dynamodb.Table("Alpha-BookClubHistory")
 
 # @TODO: Make this function type safe
 def put_book(guild_id, user_id, selected_book, discussion_date, pages_or_chapters):
