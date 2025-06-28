@@ -2,129 +2,20 @@ from flask import Flask, jsonify, request
 from mangum import Mangum
 from asgiref.wsgi import WsgiToAsgi
 from discord_interactions import verify_key_decorator
-import requests
-from dynamodb import put_book, get_current_book
-from config import DISCORD_PUBLIC_KEY, GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT
-from utils import is_valid_future_date, random_greeting
+from helper_functions import handle_book_select, handle_schedule_select
+from command_handler import command_handler
+from config import DISCORD_PUBLIC_KEY, IN_DEVELOPMENT
 
-
+# @TODO: Convert this to use redis instead
+# pending selections
 pending_selections = {}
+# storing the current books being looked at
 current_books_list = {}
 
 # flask set up
 app = Flask(__name__)
 asgi_app = WsgiToAsgi(app)
 handler = Mangum(asgi_app)
-
-def handle_button_click(raw_request):
-    guild_id = raw_request.get("guild_id")
-    # do a check to make sure there isnt a current book already
-    if get_current_book(guild_id):
-        return jsonify({
-            "type": 4,
-            "data": {
-                "content": "📚 A current book has been set for this server! Please use /current to see it!",
-                "flags": 64  # Ephemeral
-            }
-        })
-
-
-    user_id = raw_request["member"]["user"]["id"]
-    custom_id = raw_request["data"]["custom_id"]
-
-    selected_idx = int(custom_id.split("_")[-1])
-    selected_book = current_books_list[selected_idx]
-
-    pending_selections[user_id] = selected_book
-
-    modal = {
-        "custom_id": "select_schedule",
-        "title": "Plan Discussion",
-        "components": [
-            {
-                "type": 1,  # Action row
-                "components": [
-                    {
-                        "type": 4,  # Text input
-                        "custom_id": "discussion_date",
-                        "style": 1,
-                        "label": "Discussion Date (MM-DD-YYYY)",
-                        "min_length": 10,
-                        "max_length": 10,
-                        "placeholder": "03-28-2003",
-                        "required": True
-                    }
-                ]
-            },
-            {
-                "type": 1,  # Another action row
-                "components": [
-                    {
-                        "type": 4,  # Text input
-                        "custom_id": "pages_or_chapters",
-                        "style": 1,
-                        "label": "Pages or Chapters to Read",
-                        "min_length": 1,
-                        "max_length": 100,
-                        "placeholder": "e.g. Chapters 1-3 or Pages 1-50",
-                        "required": True
-                    }
-                ]
-            }
-        ]
-    }
-
-    return jsonify({
-        "type": 9,
-        "data": modal
-    })
-
-
-def handle_modal_submit(raw_request):
-    user_id = raw_request["member"]["user"]["id"]
-    values = raw_request["data"]["components"]
-    # Extract date from modal inputs:
-    discussion_date = None
-    pages_or_chapters = None
-
-    for action_row in raw_request["data"]["components"]:
-        for component in action_row["components"]:
-            if component["custom_id"] == "discussion_date":
-                discussion_date = component["value"]
-            elif component["custom_id"] == "pages_or_chapters":
-                pages_or_chapters = component["value"]
-
-    # conditional check if there is a selected book
-    selected_book = pending_selections.get(user_id)
-
-    if not selected_book:
-        return jsonify({
-            "type": 4,
-            "data": {"content": "❗ No book selected to save. Please try again."}
-        })
-
-    # validate discussion date and pages or chapters
-    if not is_valid_future_date(discussion_date):
-        print("TEST")
-        return jsonify({
-            "type": 4,  # Channel message with source (ephemeral)
-            "data": {
-                "content": "❌ Please enter a valid future date in MM-DD-YYYY format.",
-                "flags": 64  # Ephemeral message
-            }
-        })
-
-    # Now save selected_book + discussion_date to DynamoDB (your save logic here)
-    put_book(raw_request.get("guild_id"), user_id, selected_book, discussion_date, pages_or_chapters)
-
-    print("Post Put Book")
-    # Remove the pending selection
-    del pending_selections[user_id]
-
-    return jsonify({
-        "type": 4,
-        "data": {"content": f"✅ Book '{selected_book['volumeInfo']['title']}' scheduled for discussion on {discussion_date}!"}
-    })
 
 
 # post request method
@@ -143,211 +34,40 @@ def interact(raw_request):
     user_id = raw_request["member"]["user"]["id"]
     guild_id = raw_request.get("guild_id")
     
-    # ping request
+
+    # ping request == 1
     if request_type == 1:  # PING
         return jsonify({"type": 1})  # PONG
 
-    # button request
+    # button request == 3
     if request_type == 3:
         custom_id = raw_request["data"]["custom_id"]
+        # select book method
         if custom_id.startswith("select_book_"):
-            return handle_button_click(raw_request)
+            return handle_book_select(raw_request, current_books_list, pending_selections)
+        elif custom_id == "finish_book":
+            # @TODO: Make these functions in helper_functions 
+            return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
+        elif custom_id == "reschedule_book":
+            # @TODO: Make these functions in helper_functions
+            return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
+
+        # default
+        return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
         
-    # modal request
+    # modal request == 5
     if request_type == 5:
         custom_id = raw_request["data"]["custom_id"]
         if custom_id == "select_schedule":
-            return handle_modal_submit(raw_request)
+            return handle_schedule_select(raw_request, pending_selections)
 
+        # default
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
     
-    # This line cannot be moved
-    command_name = data["name"]
-    # Hello Command
-    if command_name == "hello":
-        message_content = f"{random_greeting()} <@{user_id}>!"
 
-    elif command_name == "echo":
-        original_message = data["options"][0]["value"]
-        message_content = f"Echoing: {original_message}"
 
-    elif command_name == "current":
-        book = get_current_book(guild_id)
-        print(book)
-        # 1️⃣ Nothing in DynamoDB yet
-        if book is None:
-            return jsonify({
-                "type": 4,
-                "data": {
-                    "content": "📚 No current book has been set for this server. Use `/search` to pick one!",
-                    "flags": 64        # Ephemeral
-                }
-            })
-
-        # 2️⃣ Pull the fields we stored
-        title            = book.get("title", "Unknown Title")
-        authors          = book.get("authors", "Unknown Author")
-        isbn             = book.get("isbn", "N/A")
-        discussion_date  = book.get("discussion_date", "TBD")
-        pages            = book.get("set_page_or_chapter", "—")
-
-        # Optional: if you stored a cover URL in DynamoDB
-        thumbnail_url    = book.get("thumbnail")      # may be None
-        embed = {
-            "title": title,
-            "description": f"Author: {authors}\n"
-                        f"ISBN: {isbn}\n"
-                        f"Discussion: {discussion_date}\n"
-                        f"Pages / chapter: {pages}",
-        }
-        if thumbnail_url:
-            embed["thumbnail"] = {"url": thumbnail_url}
-
-        # ─── action‑row with two buttons ────────────────────────
-        button_row = {
-            "type": 1,           # ACTION_ROW
-            "components": [
-                {
-                    "type": 2,             # BUTTON
-                    "label": "Reschedule",
-                    "style": 1,            # Primary
-                    "custom_id": "reschedule_book"
-                },
-                {
-                    "type": 2,
-                    "label": "Finish",
-                    "style": 1,
-                    "custom_id": "finish_book"
-                }
-            ]
-        }
-
-        # ─── send an ephemeral message back to the user ─────────
-        return jsonify({
-            "type": 4,  # CHANNEL_MESSAGE_WITH_SOURCE
-            "data": {
-                "embeds": [embed],          # rich message with book info
-                "components": [button_row]  # action row with buttons
-            }
-        })
-
-        
-    elif command_name == "search":
-        # building a dictionary to obtain search values (ex: key=Title: value=Book Title, key=Author: Value: Author)
-        print(data)
-        query_options = {opt["name"]: opt["value"] for opt in data.get("options", [])}
-
-        # if no queries are present, then return an error
-        if not any(k in query_options for k in ["title", "author", "publisher", "isbn"]):
-            return jsonify({
-                "type": 4,
-                "data": {
-                    "content": "❗Please provide at least one search option (e.g. Title, Author, Publisher, or ISBN)."
-                }
-            })
-
-        # Construct query params based on whats provided to search
-        query_params = []
-
-        if "title" in query_options:
-            query_params.append(f"intitle:{query_options['title']}")
-        if "author" in query_options:
-            query_params.append(f"inauthor:{query_options['author']}")
-        if "publisher" in query_options:
-            query_params.append(f"inpublisher:{query_options['publisher']}")
-        if "isbn" in query_options:
-            query_params.append(f"isbn:{query_options['isbn']}")
-
-        # Final Query Response to send to URL
-        final_query = "+".join(query_params)
-
-        response = requests.get(GOOGLE_BOOKS_API_URL, params={
-            "q": final_query,
-            "maxResults": 5,
-        })
-
-        books = response.json().get("items", [])
-
-        if not books:
-            message_content = f"No books found for '{query_options}'."
-        else:
-            sectionsReturn = []
-            global current_books_list
-            current_books_list = books  # save for button click handler
-            for idx, book in enumerate(books):
-                info = book["volumeInfo"]
-                title = info.get("title", "No title")
-                authors = ", ".join(info.get("authors", ["Unknown author"]))
-                desc = info.get("description", "")
-                thumbnail = info.get("imageLinks", {}).get("thumbnail")
-                previewLink = info.get("previewLink", "No Link")
-                industry_ids = info.get("industryIdentifiers", [])
-
-                # Prefer ISBN-13 if available
-                isbn_13 = next((id["identifier"] for id in industry_ids if id["type"] == "ISBN_13"), None)
-                isbn_10 = next((id["identifier"] for id in industry_ids if id["type"] == "ISBN_10"), None)
-
-                isbn = isbn_13 or isbn_10
-
-                short_desc = (desc[:150] + "...") if len(desc) > 150 else desc
-
-                section = {
-                    "type": 9,
-                    "components": [
-                        {"type": 10, "content": f"**{idx + 1}) {title}** by {authors}"},
-                        {"type": 10, "content": f"ISBN: {isbn}"},
-                        {"type": 10, "content": f"Preview: {previewLink}"},
-                    ]
-                }
-                # if short_desc:
-                #     section["components"].append({
-                #         "type": 10,
-                #         "content": short_desc
-                #     })
-
-                if thumbnail:
-                    section["accessory"] = {
-                        "type": 11,
-                        "media": {
-                            "url": thumbnail
-                        }
-                    }
-
-                sectionsReturn.append(section)
-            
-            
-            # @TODO: Polish Button Feature to select which books the book club is reading currently and upload to DynamoDB
-            button_row = {
-                "type": 1,
-                "components": []
-            }
-
-            for idx, book in enumerate(books[:5]):
-                title = book["volumeInfo"].get("title", "Book")
-                button_row["components"].append({
-                    "type": 2,
-                    "label": f"{idx+1}",
-                    "style": 1,
-                    "custom_id": f"select_book_{idx}"
-                })
-            sectionsReturn.append(button_row)
-            
-            
-            return jsonify({
-                "type": 4,
-                "data": {
-                    "flags": 32768,
-                    "components": sectionsReturn
-                }
-            })
-            
-    else:
-        message_content = "Unknown command."
-    
-    return jsonify({
-        "type": 4,
-        "data": {"content": message_content},
-    })
+    # handle the / commands (i.e. /hello, /echo, etc...)
+    return command_handler(raw_request, current_books_list)
 
 # Main Method
 if __name__ == "__main__":
