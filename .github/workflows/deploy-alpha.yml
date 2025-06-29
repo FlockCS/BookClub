@@ -49,6 +49,6 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       
       - name: Deploy CDK stack
-        run: cdk deploy ProdBookClubBotStack --require-approval never
+        run: cdk deploy AlphaBookClubBotStack --require-approval never
         env:
           ENVIRONMENT: prod

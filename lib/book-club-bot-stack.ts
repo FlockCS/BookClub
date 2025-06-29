@@ -73,7 +73,8 @@ export class BookClubBotStack extends cdk.Stack {
           destinationType: 'cloudwatch-logs',
           logFormat: 'json',
           logType: 'engine-log'
-        }]
+        }],
+        transitEncryptionEnabled: false
     });
   }
 }
