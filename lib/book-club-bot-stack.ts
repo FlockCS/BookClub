@@ -64,16 +64,6 @@ export class BookClubBotStack extends cdk.Stack {
         numNodeGroups: 1, // leave as is
         replicasPerNodeGroup: 1, // increase to scale
         replicationGroupDescription: "Cache to store book info from Google API",
-        logDeliveryConfigurations: [{
-          destinationDetails: {
-            cloudWatchLogsDetails: {
-              logGroup: `/aws/elasticache/${props.stage}CacheCluster`
-            },
-          },
-          destinationType: 'cloudwatch-logs',
-          logFormat: 'json',
-          logType: 'engine-log'
-        }],
         transitEncryptionEnabled: false
     });
   }

@@ -1,9 +1,9 @@
 # Changes to be made
 - Implement Valkey on Elasticache (750 hours free)
-- Implement dataclass/pydantic class for books
-- Add unit tests
-- 
-
+    - Add elasticache to CDK [Done]
+    - Implement caching [In Progress]
+- Implement dataclass/pydantic class for books [Not Started]
+- Add unit tests [Not Started]
 
 # Book Club Bot
 
