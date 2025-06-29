@@ -1,3 +1,10 @@
+# Changes to be made
+- Implement Valkey on Elasticache (750 hours free)
+- Implement dataclass/pydantic class for books
+- Add unit tests
+- 
+
+
 # Book Club Bot
 
 A Discord bot built with AWS Lambda and CDK for managing book club activities. The bot supports multiple environments (Alpha and Prod) with separate Discord applications and configurations.
