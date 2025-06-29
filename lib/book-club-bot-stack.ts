@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import * as elasticache from 'aws-cdk-lib/aws-elasticache'
 
 export interface BookClubBotStackProps extends cdk.StackProps {
   stage: string;
@@ -53,5 +54,14 @@ export class BookClubBotStack extends cdk.Stack {
       value: functionUrl.url,
     });
 
+    // elasticache declaration
+    const cache_cluster = new elasticache.ReplicationGroup(this, {
+      ClusterName: '${props.stage}CacheCluster',
+      Engine: 'valkey',
+      CacheNodeType: 'cache.t3.micro',
+      NumNodeGroups: 1, // leave as is
+      ReplicasPerNodeGroup: 1, // increase to scale
+      ReplicationGroupDescription: "Cache to store book info from Google API"
+    });
   }
 }
