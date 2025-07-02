@@ -2,8 +2,9 @@
 from flask import json, jsonify
 import requests
 from config import GOOGLE_BOOKS_API_URL
-from utils.aws.dynamodb import get_current_book
-from utils.utils import random_greeting
+from app.utils.aws.dynamodb import get_current_book
+from app.utils.utils import random_greeting
+from app.utils.aws.elasticache import test_function
 
 def command_handler(raw_request, current_books_list):
     """
@@ -23,6 +24,7 @@ def command_handler(raw_request, current_books_list):
 
      # Hello Command
     if command_name == "hello":
+        test_function()
         message_content = f"{random_greeting()} <@{user_id}>!"
 
     elif command_name == "echo":
