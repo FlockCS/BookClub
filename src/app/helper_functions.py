@@ -1,6 +1,6 @@
 from flask import jsonify
-from utils.utils import is_valid_future_date
-from utils.aws.dynamodb import put_book, get_current_book
+from app.utils.utils import is_valid_future_date
+from app.utils.aws.dynamodb import put_book, get_current_book
 
 
 def handle_book_select(raw_request, current_books_list, pending_selections):
