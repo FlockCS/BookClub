@@ -5,7 +5,7 @@ from discord_interactions import verify_key_decorator
 from helper_functions import handle_book_select, handle_schedule_select
 from command_handler import command_handler
 from config import DISCORD_PUBLIC_KEY, IN_DEVELOPMENT
-from utils.aws.elasticache import test_function
+from app.utils.aws.elasticache import test_function
 
 # @TODO: Convert this to use redis instead
 # pending selections
