@@ -14,10 +14,7 @@ current_books_list = {}
 
 # flask set up
 app = Flask(__name__)
-handler = Mangum(app)
-
-def lambda_handler(event, context):
-    return handler(event, context)
+handler = Mangum(app, lifespan="off")
 
 # post request method
 @app.route("/", methods=["POST"])
