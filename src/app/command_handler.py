@@ -1,10 +1,9 @@
-
 from flask import json, jsonify
 import requests
 from config import GOOGLE_BOOKS_API_URL
-from app.utils.aws.dynamodb import get_current_book
-from app.utils.utils import random_greeting
-from app.utils.aws.elasticache import test_function
+from utils.aws.dynamodb import get_current_book
+from utils.aws.elasticache import test_function
+from utils.utils import random_greeting
 
 def command_handler(raw_request, current_books_list):
     """
