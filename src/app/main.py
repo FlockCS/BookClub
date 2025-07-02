@@ -5,6 +5,7 @@ from discord_interactions import verify_key_decorator
 from helper_functions import handle_book_select, handle_schedule_select
 from command_handler import command_handler
 from config import DISCORD_PUBLIC_KEY, IN_DEVELOPMENT
+from utils.aws.elasticache import test_function
 
 # @TODO: Convert this to use redis instead
 # pending selections
@@ -37,6 +38,7 @@ def interact(raw_request):
 
     # ping request == 1
     if request_type == 1:  # PING
+        test_function()
         return jsonify({"type": 1})  # PONG
 
     # button request == 3
