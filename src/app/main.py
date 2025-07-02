@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from mangum import Mangum
-from asgiref.wsgi import WsgiToAsgi
+# from asgiref.wsgi import WsgiToAsgi
 from discord_interactions import verify_key_decorator
 from helper_functions import handle_book_select, handle_schedule_select
 from command_handler import command_handler
@@ -14,9 +14,10 @@ current_books_list = {}
 
 # flask set up
 app = Flask(__name__)
-asgi_app = WsgiToAsgi(app)
-handler = Mangum(asgi_app)
+handler = Mangum(app)
 
+def lambda_handler(event, context):
+    return handler(event, context)
 
 # post request method
 @app.route("/", methods=["POST"])
