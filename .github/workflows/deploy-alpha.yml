@@ -48,12 +48,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Synthesize CDK stack
-        run: cdk synth AlphaBookClubBotStack
-        env:
-          CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
-          CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-
       - name: Deploy CDK stack
         run: cdk deploy AlphaBookClubBotStack --require-approval never
         env:
