@@ -8,6 +8,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2'
 export interface BookClubBotStackProps extends cdk.StackProps {
   stage: string;
   discordPublicKey: string;
+  env?: { [key: string]: string };
 }
 
 export class BookClubBotStack extends cdk.Stack {
