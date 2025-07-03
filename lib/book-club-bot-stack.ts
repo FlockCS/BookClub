@@ -96,7 +96,8 @@ export class BookClubBotStack extends cdk.Stack {
       this,
       `${props.stage}ElasticacheSubnetGroup`,
       {
-        subnetIds: defaultVpc.publicSubnets.map(subnet => subnet.subnetId)
+        subnetIds: defaultVpc.publicSubnets.map(subnet => subnet.subnetId),
+        description: 'Subnet group for Elasticache DefaultVPC'
       }
     );
 
