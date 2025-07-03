@@ -23,6 +23,8 @@ def command_handler(raw_request, current_books_list):
 
      # Hello Command
     if command_name == "hello":
+        print("Starting cache put")
+
         key1, value1 = "test1", "First item to be put into Redis!"
         key2, value2 = "test2", ["List", "to", "be", "put"]
 
