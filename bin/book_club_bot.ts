@@ -10,7 +10,7 @@ new BookClubBotStack(app, 'ProdBookClubBotStack', {
   stage: 'Prod',
   discordPublicKey: PROD_DISCORD_PUBLIC_KEY,
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
+    account: process.env.CDK_DEFAULT_ACCOUNT!,
     region: process.env.CDK_DEFAULT_REGION || 'us-east-2'
   },
 });
@@ -19,7 +19,7 @@ new BookClubBotStack(app, 'AlphaBookClubBotStack', {
   stage: 'Alpha',
   discordPublicKey: ALPHA_DISCORD_PUBLIC_KEY,
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
+    account: process.env.CDK_DEFAULT_ACCOUNT!,
     region: process.env.CDK_DEFAULT_REGION || 'us-east-2'
   },
 });
