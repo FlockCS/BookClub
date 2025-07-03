@@ -15,7 +15,7 @@ new BookClubBotStack(app, 'AlphaBookClubBotStack', {
   stage: 'Alpha',
   discordPublicKey: ALPHA_DISCORD_PUBLIC_KEY,
   env: {
-    account: process.env.AWS_ACCOUNT || 'unknown',
+    account: process.env.AWS_ACCOUNT,
     region: process.env.AWS_DEFAULT_REGION || 'us-east-2'
   }
 });
