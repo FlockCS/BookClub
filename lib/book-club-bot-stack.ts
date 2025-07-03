@@ -122,7 +122,7 @@ export class BookClubBotStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, `${props.stage}ElasticacheEndpoint`, {
-      value: cacheCluster.attrPrimaryEndpointAddress,
+      value: cacheCluster.attrPrimaryEndPointAddress,
     });
   }
 }
