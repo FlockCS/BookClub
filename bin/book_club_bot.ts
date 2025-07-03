@@ -14,4 +14,7 @@ new BookClubBotStack(app, 'ProdBookClubBotStack', {
 new BookClubBotStack(app, 'AlphaBookClubBotStack', { 
   stage: 'Alpha',
   discordPublicKey: ALPHA_DISCORD_PUBLIC_KEY,
+  env: {
+    region: process.env.CDK_DEFAULT_ACCOUNT || 'us-east-2'
+  }
 });
