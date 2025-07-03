@@ -12,6 +12,7 @@ redis_client = Redis(
     port=cache_port, 
     decode_responses=True
 )
+print(f"connection to redis client: {redis_client.ping()}")
 
 def cache_put(key: str, value: Any) -> bool:
     """
