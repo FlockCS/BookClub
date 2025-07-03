@@ -53,3 +53,4 @@ jobs:
         env:
           ENVIRONMENT: alpha
           ELASTICACHE_CLUSTER_ENDPOINT: ${{ secrets.ELASTICACHE_CLUSTER_ENDPOINT }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
