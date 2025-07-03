@@ -2,7 +2,7 @@ from flask import json, jsonify
 import requests
 from config import GOOGLE_BOOKS_API_URL
 from utils.aws.dynamodb import get_current_book
-from utils.aws.elasticache import test_function
+from utils.aws.elasticache import cache_put, cache_get
 from utils.utils import random_greeting
 
 def command_handler(raw_request, current_books_list):
@@ -23,7 +23,33 @@ def command_handler(raw_request, current_books_list):
 
      # Hello Command
     if command_name == "hello":
-        test_function()
+        key1, value1 = "test1", "First item to be put into Redis!"
+        key2, value2 = "test2", ["List", "to", "be", "put"]
+
+        # put 1
+        input1 = cache_put(key1, value1)
+        if not input1:
+            print("Failed to put first key,value pair into redis")
+        else:
+            print("successfully put the first key,value pair into redis")
+        output1 = cache_get(key1)
+        if not output1:
+            print("Failed to get first value from redis")
+        else:
+            print(f"successfully got the first value from redis: {output1}")
+
+        # put 2
+        input2 = cache_put(key2, value2)
+        if not input2:
+            print("Failed to put second key,value pair into redis")
+        else:
+            print("successfully put the second key,value pair into redis")
+        output2 = cache_get(key2)
+        if not output2:
+            print("Failed to get second value from redis")
+        else:
+            print(f"successfully got the second value from redis: {output2}")
+
         message_content = f"{random_greeting()} <@{user_id}>!"
 
     elif command_name == "echo":
