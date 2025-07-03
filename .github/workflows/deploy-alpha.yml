@@ -51,4 +51,5 @@ jobs:
       - name: Deploy CDK stack
         run: cdk deploy AlphaBookClubBotStack --require-approval never
         env:
-          ENVIRONMENT: prod
+          ENVIRONMENT: alpha
+          ELASTICACHE_CLUSTER_ENDPOINT: ${{ secrets.ELASTICACHE_CLUSTER_ENDPOINT }}

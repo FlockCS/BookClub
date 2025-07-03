@@ -23,6 +23,7 @@ export class BookClubBotStack extends cdk.Stack {
         architecture: lambda.Architecture.X86_64,
         environment: {
           DISCORD_PUBLIC_KEY: props.discordPublicKey,
+          ELASTICACHE_CLUSTER_ENDPOINT: process.env.ELASTICACHE_CLUSTER_ENDPOINT || 'unknown'
         },
       }
     );

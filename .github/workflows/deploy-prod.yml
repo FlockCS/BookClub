@@ -54,3 +54,4 @@ jobs:
         run: cdk deploy ProdBookClubBotStack --require-approval never
         env:
           ENVIRONMENT: prod
+          ELASTICACHE_CLUSTER_ENDPOINT: ${{ secrets.ELASTICACHE_CLUSTER_ENDPOINT }}
