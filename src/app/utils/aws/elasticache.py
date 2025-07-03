@@ -5,7 +5,7 @@ from typing import Any
 import json
 
 # getting redis client
-cache_endpoint = os.environ("ELASTICACHE_CLUSTER_ENDPOINT")
+cache_endpoint = os.environ["ELASTICACHE_CLUSTER_ENDPOINT"]
 cache_port = 6379
 redis_client = Redis(
     host=cache_endpoint, 
