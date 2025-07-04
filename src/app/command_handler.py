@@ -1,7 +1,7 @@
 from flask import json, jsonify
 import requests
 from config import GOOGLE_BOOKS_API_URL
-from utils.aws.dynamodb import get_current_book, cache_book_list
+from utils.aws.dynamodb import get_current_book, cache_book_list, get_cached_book_list
 from utils.utils import random_greeting
 
 def command_handler(raw_request):
@@ -22,8 +22,14 @@ def command_handler(raw_request):
 
      # Hello Command
     if command_name == "hello":
-        test = cache_book_list(guild_id=guild_id, book_list=["Test1", "Test2"], ttl=60)
+        book_list = ["Test1", "Test2"]
+        print("testing book_list put")
+        cache_book_list(guild_id=guild_id, book_list=book_list, ttl=60)
         message_content = f"{random_greeting()} <@{user_id}>!"
+        print("testing book_list get")
+        returned = get_cached_book_list(guild_id=guild_id)
+        print("got book list", returned)
+
 
     elif command_name == "echo":
         original_message = data["options"][0]["value"]

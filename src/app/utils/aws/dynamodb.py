@@ -71,6 +71,7 @@ def cache_book_list(
 
     Raises:
         Exception when either guild_id or book_list is None
+        Exception when put_item action fails
     """
 
     if not guild_id or not book_list:
@@ -93,5 +94,36 @@ def cache_book_list(
         msg = f"Failed to put item into table. {e}"
         raise Exception(msg)
 
-def get_cached_book_list(guild_id: str) -> list[str]:
-    pass
+def get_cached_book_list(guild_id: str) -> Any:
+    """
+    Gets book list from the dynamodb cache
+
+    Input:
+        guild_id: server id
+
+    Output:
+        book_list: the cached book list
+    
+    Raises:
+        Exception when invalid guild_id is entered
+        Exception when the retrieval fails
+    """
+    
+    if not guild_id:
+        msg = f"Invalid guild_id entered."
+        raise Exception(msg)
+
+    try:
+        response = cache_table.get_item(
+            Key={
+                "guild_id": guild_id
+            }
+        )
+
+        if "Item" in response:
+            return response["Item"]
+        else:
+            raise
+    except Exception as e:
+        msg = f"Failed to retrieve item from cache table for key {guild_id}. {e}"
+        raise Exception(msg)
