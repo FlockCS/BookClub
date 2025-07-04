@@ -66,7 +66,7 @@ def interact(raw_request):
 
 
     # handle the / commands (i.e. /hello, /echo, etc...)
-    return command_handler(raw_request, current_books_list)
+    return command_handler(raw_request)
 
 # Main Method
 if __name__ == "__main__":
