@@ -3,7 +3,7 @@ from utils.utils import is_valid_future_date
 from utils.aws.dynamodb import put_book, get_current_book
 
 
-def handle_book_select(raw_request, current_books_list, pending_selections):
+def handle_book_select(raw_request, pending_selections):
     guild_id = raw_request.get("guild_id")
     # do a check to make sure there isnt a current book already
     if get_current_book(guild_id):
@@ -20,6 +20,7 @@ def handle_book_select(raw_request, current_books_list, pending_selections):
     custom_id = raw_request["data"]["custom_id"]
 
     selected_idx = int(custom_id.split("_")[-1])
+    current_books_list = get_cached_book_list(guild_id=guild_id)
     selected_book = current_books_list.get(guild_id, [])[selected_idx]
 
     pending_selections.setdefault(guild_id, {})[user_id] = selected_book

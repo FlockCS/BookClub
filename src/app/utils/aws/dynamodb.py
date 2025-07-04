@@ -1,14 +1,27 @@
 import boto3 # type: ignore
 import os
 from datetime import datetime, timezone, date
+import time
+from typing import Any
 
 dynamodb = boto3.resource("dynamodb")
-table_name = os.environ["BOOK_TABLE"]
-book_table = dynamodb.Table(table_name)
+
+book_table_name = os.environ["BOOK_TABLE"]
+cache_table_name = os.environ["CACHE_TABLE"]
+
+# tables
+book_table = dynamodb.Table(book_table_name)
+cache_table = dynamodb.Table(cache_table_name)
 
 
 # @TODO: Make this function type safe
-def put_book(guild_id, user_id, selected_book, discussion_date, pages_or_chapters):
+def put_book(
+        guild_id: str, 
+        user_id: str, 
+        selected_book: dict[str, dict], 
+        discussion_date: datetime, 
+        pages_or_chapters
+    ) -> None:
     # Extract info from selected_book (adjust fields as per your data)
     volume_info = selected_book.get("volumeInfo", {})
     title = volume_info.get("title", "Unknown Title")
@@ -35,8 +48,50 @@ def put_book(guild_id, user_id, selected_book, discussion_date, pages_or_chapter
     )
 
 # Get the current book being read as well the next scheduled date
-def get_current_book(guild_id):
+def get_current_book(guild_id: str) -> dict[str, Any]:
     response = book_table.get_item(Key={"guild_id": guild_id})
     return response.get("Item")
 
 
+# CACHING LOGIC
+def cache_book_list(
+        guild_id: str, 
+        book_list: list[str], 
+        ttl: int = 15*60
+    ) -> None:
+    """
+    Puts the book_list into DynamoDB with a TTL of 15 mins
+    
+    Input
+        guild_id: server id
+        book_list: list of books returned by Google books API
+
+    Ouptut:
+        None
+
+    Raises:
+        Exception when either guild_id or book_list is None
+    """
+
+    if not guild_id or not book_list:
+        msg = f"Invalid guild_id or book_list entered."
+        raise Exception(msg)
+    
+    expire_timestamp = int(time.time()) + ttl
+    
+    payload = {
+        "guild_id": guild_id,
+        "book_list": book_list,
+        "ttl": expire_timestamp
+    }
+
+    try:
+        cache_table.put_item(
+            Item=payload,
+        )
+    except Exception as e:
+        msg = f"Failed to put item into table. {e}"
+        raise Exception(msg)
+
+def get_cached_book_list(guild_id: str) -> list[str]:
+    pass

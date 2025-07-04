@@ -1,10 +1,10 @@
 from flask import json, jsonify
 import requests
 from config import GOOGLE_BOOKS_API_URL
-from utils.aws.dynamodb import get_current_book
+from utils.aws.dynamodb import get_current_book, cache_book_list
 from utils.utils import random_greeting
 
-def command_handler(raw_request, current_books_list):
+def command_handler(raw_request):
     """
     Handles incoming Discord slash command interactions (type 1).
 
@@ -22,6 +22,7 @@ def command_handler(raw_request, current_books_list):
 
      # Hello Command
     if command_name == "hello":
+        test = cache_book_list(guild_id=guild_id, book_list=["Test1", "Test2"], ttl=60)
         message_content = f"{random_greeting()} <@{user_id}>!"
 
     elif command_name == "echo":
@@ -125,7 +126,10 @@ def command_handler(raw_request, current_books_list):
         if not books:
             message_content = f"No books found for '{query_options}'."
         else:
-            current_books_list[guild_id] = books  # save for button click handler
+            # cache the book list to use later
+            # current_books_list[guild_id] = books  # save for button click handler
+            cache_book_list(guild_id=guild_id, book_list=books)
+            
             embeds = []
             for idx, book in enumerate(books[:5]):
                 info = book["volumeInfo"]
