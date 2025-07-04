@@ -1,9 +1,9 @@
 !!
 
 # Changes to be made
-- Implement Valkey on Elasticache (750 hours free)
-    - Add elasticache to CDK [Done]
-    - Implement caching [In Progress]
+- implement cache using DDB [In Progress]
+    - Create the table [Done]
+    - Implement Caching for book list [In Progress]
 - Implement dataclass/pydantic class for books [Not Started]
 - Add unit tests [Not Started]
 
