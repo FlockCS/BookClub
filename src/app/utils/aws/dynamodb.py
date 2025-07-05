@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timezone, date
 import time
 from typing import Any
+import json
 
 dynamodb = boto3.resource("dynamodb")
 
@@ -82,7 +83,7 @@ def cache_book_list(
     
     payload = {
         "guild_id": guild_id,
-        "book_list": book_list,
+        "book_list": json.dumps(book_list),
         "ttl": expire_timestamp
     }
 
@@ -121,9 +122,10 @@ def get_cached_book_list(guild_id: str) -> Any:
         )
 
         if "Item" in response:
-            return response["Item"]
-        else:
-            raise
+            return json.loads(response["Item"])
+        
+        # if no item found
+        raise
     except Exception as e:
         msg = f"Failed to retrieve item from cache table for key {guild_id}. {e}"
         raise Exception(msg)
