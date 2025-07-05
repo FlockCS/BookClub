@@ -124,7 +124,7 @@ def get_cached_book_list(guild_id: str) -> Any:
         print("[DEBUG]", response)
 
         if "Item" in response:
-            return json.loads(response["Item"])
+            return json.loads(response["Item"]["book_list"])
         
         # if no item found
         raise
