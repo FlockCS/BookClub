@@ -21,7 +21,7 @@ def handle_book_select(raw_request, pending_selections):
 
     selected_idx = int(custom_id.split("_")[-1])
     current_books_list = get_cached_book_list(guild_id=guild_id)
-    selected_book = current_books_list.get(guild_id, [])[selected_idx]
+    selected_book = current_books_list[selected_idx]
 
     pending_selections.setdefault(guild_id, {})[user_id] = selected_book
     print(f"pending selections BOOKS LIST: ", pending_selections)

@@ -22,14 +22,7 @@ def command_handler(raw_request):
 
      # Hello Command
     if command_name == "hello":
-        book_list = ["Test1", "Test2"]
-        print("testing book_list put")
-        cache_book_list(guild_id=guild_id, book_list=book_list, ttl=60)
         message_content = f"{random_greeting()} <@{user_id}>!"
-        print("testing book_list get")
-        returned = get_cached_book_list(guild_id=guild_id)
-        print("got book list", returned)
-
 
     elif command_name == "echo":
         original_message = data["options"][0]["value"]
@@ -134,7 +127,7 @@ def command_handler(raw_request):
         else:
             # cache the book list to use later
             # current_books_list[guild_id] = books  # save for button click handler
-            cache_book_list(guild_id=guild_id, book_list=books)
+            cache_book_list(guild_id=guild_id, book_list=books, ttl=60)
             
             embeds = []
             for idx, book in enumerate(books[:5]):
