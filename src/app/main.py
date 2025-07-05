@@ -15,8 +15,7 @@ current_books_list = {}
 # flask set up
 app = Flask(__name__)
 asgi_app = WsgiToAsgi(app)
-handler = Mangum(asgi_app)
-
+handler = Mangum(asgi_app, lifespan="off")
 
 # post request method
 @app.route("/", methods=["POST"])
@@ -44,7 +43,7 @@ def interact(raw_request):
         custom_id = raw_request["data"]["custom_id"]
         # select book method
         if custom_id.startswith("select_book_"):
-            return handle_book_select(raw_request, current_books_list, pending_selections)
+            return handle_book_select(raw_request, pending_selections)
         elif custom_id == "finish_book":
             # @TODO: Make these functions in helper_functions 
             return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
@@ -67,7 +66,7 @@ def interact(raw_request):
 
 
     # handle the / commands (i.e. /hello, /echo, etc...)
-    return command_handler(raw_request, current_books_list)
+    return command_handler(raw_request)
 
 # Main Method
 if __name__ == "__main__":

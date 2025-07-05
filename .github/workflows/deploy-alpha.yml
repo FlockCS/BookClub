@@ -47,8 +47,11 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      
+
       - name: Deploy CDK stack
-        run: cdk deploy ProdBookClubBotStack --require-approval never
+        run: cdk deploy AlphaBookClubBotStack --require-approval never
         env:
-          ENVIRONMENT: prod
+          ENVIRONMENT: alpha
+          ELASTICACHE_CLUSTER_ENDPOINT: ${{ secrets.ELASTICACHE_CLUSTER_ENDPOINT }}
+          CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
+          CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
