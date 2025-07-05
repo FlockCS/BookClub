@@ -1,10 +1,9 @@
 !!
 
 # Changes to be made
-- implement cache using DDB [In Progress]
+- implement cache using DDB [Done]
     - Create the table [Done]
-    - Implement Caching for book list [In Progress]
-- Implement dataclass/pydantic class for books [Not Started]
+    - Implement Caching for book list [Done]
 - Add unit tests [Not Started]
 
 # Book Club Bot
