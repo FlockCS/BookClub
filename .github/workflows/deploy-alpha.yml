@@ -31,7 +31,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest  
     environment: Alpha Environment
-    require: unit-test
+    needs: unit-test
 
     steps:
       - name: Checkout code
