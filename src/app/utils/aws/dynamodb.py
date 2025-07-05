@@ -120,6 +120,8 @@ def get_cached_book_list(guild_id: str) -> Any:
                 "guild_id": guild_id
             }
         )
+        
+        print("[DEBUG]", response)
 
         if "Item" in response:
             return json.loads(response["Item"])
