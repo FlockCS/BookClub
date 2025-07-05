@@ -43,7 +43,7 @@ def interact(raw_request):
         custom_id = raw_request["data"]["custom_id"]
         # select book method
         if custom_id.startswith("select_book_"):
-            return handle_book_select(raw_request, current_books_list, pending_selections)
+            return handle_book_select(raw_request, pending_selections)
         elif custom_id == "finish_book":
             # @TODO: Make these functions in helper_functions 
             return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
