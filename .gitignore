@@ -3,10 +3,15 @@
 *.d.ts
 node_modules
 
+# testing
+.vscode
+__pycache__
+
 .env
 .env.*
 discord.log
 
+*.ipynb
 
 # CDK asset staging directory
 .cdk.staging

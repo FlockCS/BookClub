@@ -1,0 +1,4 @@
+requests==2.28.2
+aws-cdk-lib==2.200.1
+boto3
+pytest
