@@ -1,11 +1,3 @@
-!!
-
-# Changes to be made
-- implement cache using DDB [Done]
-    - Create the table [Done]
-    - Implement Caching for book list [Done]
-- Add unit tests [Not Started]
-
 # Book Club Bot
 
 A Discord bot built with AWS Lambda and CDK for managing book club activities. The bot supports multiple environments (Alpha and Prod) with separate Discord applications and configurations.

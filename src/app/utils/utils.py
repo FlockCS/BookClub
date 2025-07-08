@@ -1,4 +1,4 @@
-from config import GREETINGS, EMOJIS
+from app.config import GREETINGS, EMOJIS
 from datetime import datetime, date
 import random
 
