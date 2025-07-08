@@ -76,6 +76,5 @@ jobs:
         run: cdk deploy AlphaBookClubBotStack --require-approval never
         env:
           ENVIRONMENT: alpha
-          ELASTICACHE_CLUSTER_ENDPOINT: ${{ secrets.ELASTICACHE_CLUSTER_ENDPOINT }}
           CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
