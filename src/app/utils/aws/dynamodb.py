@@ -64,13 +64,7 @@ def get_current_book(guild_id: str) -> dict[str, Any]:
         raise Exception(msg)
     
     response = book_table.get_item(Key={"guild_id": guild_id})
-
-    if "Item" not in response:
-        msg = f"Failed to get book from table"
-        raise Exception(msg)
-
-    return response.get("Item")
-
+    return response.get("Item", {})
 
 # CACHING LOGIC
 def cache_book_list(
