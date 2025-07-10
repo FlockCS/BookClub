@@ -1,6 +1,17 @@
-from app.config import GREETINGS, EMOJIS
 from datetime import datetime, date
 import random
+
+GREETINGS = [
+    "Hello there!",
+    "Hi!",
+    "Good to see you!",
+    "Greetings!",
+    "Hey, how are you?",
+    "Nice to meet you!",
+    "Hello, friend!",
+    "Hi, hope you’re doing well!",
+]
+EMOJIS = ["👋", "😊", "🙌", "🌟", "🤗", "😄", "✨", "😎", "😁"]
 
 # Random Greeting generator for when a user uses /hello
 def random_greeting():
