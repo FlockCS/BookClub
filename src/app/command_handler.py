@@ -32,7 +32,11 @@ def command_handler(raw_request):
         define_word = data["options"][0]["value"]
         URL = f"{DICTIONARY_API_URL}/{define_word}"
         response = requests.get(url=URL)
-        if not response:
+        print("REGULAR: ", response)
+
+        # Check if response is OK and JSON is valid
+        if not response.ok:
+            # If request failed (404, etc)
             message_content = {
                 "flags": 32768,
                 "components": [
@@ -50,45 +54,74 @@ def command_handler(raw_request):
         else:
             data = response.json()
 
-            # Parse meanings into { PartOfSpeech: [definitions...] }
-            definitions_by_pos = {}
+            # Defensive: check data format before proceeding
+            if not data or not isinstance(data, list) or "meanings" not in data[0]:
+                message_content = {
+                    "flags": 32768,
+                    "components": [
+                        {
+                            "type": 9,
+                            "components": [
+                                {
+                                    "type": 10,
+                                    "content": f"❌ Could not find definitions for **{define_word}**"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            else:
+                definitions_by_pos = {}
+                for meaning in data[0]["meanings"]:
+                    pos = meaning.get("partOfSpeech", "Unknown").capitalize()
+                    definitions = [entry.get("definition", "") for entry in meaning.get("definitions", [])]
+                    definitions_by_pos.setdefault(pos, []).extend(definitions)
 
-            for meaning in data[0]["meanings"]:
-                pos = meaning["partOfSpeech"].capitalize()
-                definitions = [entry["definition"] for entry in meaning["definitions"]]
-                definitions_by_pos.setdefault(pos, []).extend(definitions)
-            
-            response = definitions_by_pos
-            
-            components = []
-            for part_of_speech, definitions in response.items():
-                components.append({
-                    "type": 10,
-                    "content": f"**• {part_of_speech}**"
-                })
+                # Optional: limit definitions to avoid huge messages
+                max_defs_per_pos = 3
+                for pos in definitions_by_pos:
+                    definitions_by_pos[pos] = definitions_by_pos[pos][:max_defs_per_pos]
 
-                for idx, definition in enumerate(definitions, start=1):
-                    clean_def = ' '.join(definition.split())
-                    components.append({
-                        "type": 10,
-                        "content": f"{idx}. {clean_def}"
-                    })
+                components = []
+                total_length = 0
+                max_length = 1800  # Safe margin below Discord 2000 char limit
 
-            message_content = {
-                "flags": 32768,
-                "components": [
-                    {
-                        "type": 9,
-                        "components": [
-                            {
-                                "type": 10,
-                                "content": f"**Definitions for _{define_word}_**"
-                            },
-                            *components
-                        ]
-                    }
-                ]
-            }
+                for part_of_speech, definitions in definitions_by_pos.items():
+                    header = f"**• {part_of_speech}**"
+                    if total_length + len(header) > max_length:
+                        break
+                    components.append({"type": 10, "content": header})
+                    total_length += len(header)
+
+                    for idx, definition in enumerate(definitions, start=1):
+                        clean_def = ' '.join(definition.split())
+                        line = f"{idx}. {clean_def}"
+                        if total_length + len(line) > max_length:
+                            components.append({"type": 10, "content": "*...more definitions omitted.*"})
+                            total_length = max_length
+                            break
+                        components.append({"type": 10, "content": line})
+                        total_length += len(line)
+
+                    if total_length >= max_length:
+                        break
+
+                message_content = {
+                    "flags": 32768,
+                    "components": [
+                        {
+                            "type": 9,
+                            "components": [
+                                {
+                                    "type": 10,
+                                    "content": f"**Definitions for _{define_word}_**"
+                                },
+                                *components
+                            ]
+                        }
+                    ]
+                }
+
     elif command_name == "current":
         book = get_current_book(guild_id)
         # 1️⃣ Nothing in DynamoDB yet
