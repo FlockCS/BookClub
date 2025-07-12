@@ -1,9 +1,8 @@
 from flask import json, jsonify
 import requests
-from config import GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT
+from config import GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT, DICTIONARY_API_URL
 from utils.aws.dynamodb import get_current_book, cache_book_list, get_cached_book_list
 from utils.utils import random_greeting
-from PyDictionary import PyDictionary
 
 def command_handler(raw_request):
     """
@@ -20,7 +19,6 @@ def command_handler(raw_request):
     command_name = raw_request["data"]["name"]
     user_id = raw_request["member"]["user"]["id"]
     guild_id = raw_request.get("guild_id")
-    dictionary = PyDictionary()
 
      # Hello Command
     if command_name == "hello":
@@ -32,8 +30,9 @@ def command_handler(raw_request):
     
     elif command_name == "define":
         define_word = data["options"][0]["value"]
-        res = dictionary.meaning(define_word)
-        if not res:
+        URL = f"{DICTIONARY_API_URL}/{define_word}"
+        response = requests.get(url=URL)
+        if not response:
             message_content = {
                 "flags": 32768,
                 "components": [{
@@ -46,7 +45,7 @@ def command_handler(raw_request):
             }
         else: 
             components = []
-            for part_of_speech, definitions in res.items():
+            for part_of_speech, definitions in response.items():
                 components.append({
                     "type": 10,
                     "content": f"**• {part_of_speech}**"
