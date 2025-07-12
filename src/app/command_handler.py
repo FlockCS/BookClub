@@ -35,15 +35,31 @@ def command_handler(raw_request):
         if not response:
             message_content = {
                 "flags": 32768,
-                "components": [{
-                    "type": 9,
-                    "components": [{
-                        "type": 10,
-                        "content": f"Sorry, I couldn't find any definitions for **{define_word}**."
-                    }]
-                }]
+                "components": [
+                    {
+                        "type": 9,
+                        "components": [
+                            {
+                                "type": 10,
+                                "content": f"❌ Could not find definitions for **{define_word}**"
+                            }
+                        ]
+                    }
+                ]
             }
-        else: 
+        else:
+            data = response.json()
+
+            # Parse meanings into { PartOfSpeech: [definitions...] }
+            definitions_by_pos = {}
+
+            for meaning in data[0]["meanings"]:
+                pos = meaning["partOfSpeech"].capitalize()
+                definitions = [entry["definition"] for entry in meaning["definitions"]]
+                definitions_by_pos.setdefault(pos, []).extend(definitions)
+            
+            response = definitions_by_pos
+            
             components = []
             for part_of_speech, definitions in response.items():
                 components.append({
@@ -57,6 +73,7 @@ def command_handler(raw_request):
                         "type": 10,
                         "content": f"{idx}. {clean_def}"
                     })
+
             message_content = {
                 "flags": 32768,
                 "components": [
