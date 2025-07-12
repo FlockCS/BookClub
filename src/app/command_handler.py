@@ -3,7 +3,7 @@ import requests
 from config import GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT
 from utils.aws.dynamodb import get_current_book, cache_book_list, get_cached_book_list
 from utils.utils import random_greeting
-
+from PyDictionary import PyDictionary
 
 def command_handler(raw_request):
     """
@@ -20,6 +20,7 @@ def command_handler(raw_request):
     command_name = raw_request["data"]["name"]
     user_id = raw_request["member"]["user"]["id"]
     guild_id = raw_request.get("guild_id")
+    dictionary = PyDictionary()
 
      # Hello Command
     if command_name == "hello":
@@ -31,7 +32,47 @@ def command_handler(raw_request):
     
     elif command_name == "define":
         define_word = data["options"][0]["value"]
-        message_content = f"{IN_DEVELOPMENT}"
+        res = dictionary.meaning(define_word)
+        if not res:
+            message_content = {
+                "flags": 32768,
+                "components": [{
+                    "type": 9,
+                    "components": [{
+                        "type": 10,
+                        "content": f"Sorry, I couldn't find any definitions for **{define_word}**."
+                    }]
+                }]
+            }
+        else: 
+            components = []
+            for part_of_speech, definitions in res.items():
+                components.append({
+                    "type": 10,
+                    "content": f"**• {part_of_speech}**"
+                })
+
+                for idx, definition in enumerate(definitions, start=1):
+                    clean_def = ' '.join(definition.split())
+                    components.append({
+                        "type": 10,
+                        "content": f"{idx}. {clean_def}"
+                    })
+            message_content = {
+                "flags": 32768,
+                "components": [
+                    {
+                        "type": 9,
+                        "components": [
+                            {
+                                "type": 10,
+                                "content": f"**Definitions for _{define_word}_**"
+                            },
+                            *components
+                        ]
+                    }
+                ]
+            }
     elif command_name == "current":
         book = get_current_book(guild_id)
         # 1️⃣ Nothing in DynamoDB yet
