@@ -32,7 +32,6 @@ def command_handler(raw_request):
         define_word = data["options"][0]["value"]
         URL = f"{DICTIONARY_API_URL}{define_word}"
         response = requests.get(url=URL)
-        print("REGULAR: ", response, URL)
 
         # Check if response is OK and JSON is valid
         if not response.ok:
@@ -105,7 +104,7 @@ def command_handler(raw_request):
 
                     if total_length >= max_length:
                         break
-
+                    
                 message_content = {
                     "flags": 32768,
                     "components": [
