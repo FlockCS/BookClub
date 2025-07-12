@@ -1,8 +1,9 @@
 from flask import json, jsonify
 import requests
-from config import GOOGLE_BOOKS_API_URL
+from config import GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT
 from utils.aws.dynamodb import get_current_book, cache_book_list, get_cached_book_list
 from utils.utils import random_greeting
+
 
 def command_handler(raw_request):
     """
@@ -27,7 +28,10 @@ def command_handler(raw_request):
     elif command_name == "echo":
         original_message = data["options"][0]["value"]
         message_content = f"Echoing: {original_message}"
-
+    
+    elif command_name == "define":
+        define_word = data["options"][0]["value"]
+        message_content = f"{IN_DEVELOPMENT}"
     elif command_name == "current":
         book = get_current_book(guild_id)
         # 1️⃣ Nothing in DynamoDB yet
