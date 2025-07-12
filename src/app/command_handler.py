@@ -30,9 +30,9 @@ def command_handler(raw_request):
     
     elif command_name == "define":
         define_word = data["options"][0]["value"]
-        URL = f"{DICTIONARY_API_URL}/{define_word}"
+        URL = f"{DICTIONARY_API_URL}{define_word}"
         response = requests.get(url=URL)
-        print("REGULAR: ", response)
+        print("REGULAR: ", response, URL)
 
         # Check if response is OK and JSON is valid
         if not response.ok:
