@@ -106,21 +106,13 @@ def command_handler(raw_request):
                         break
                 
                 print("COMPONENTS ", components)
-                message_content = {
-                    "flags": 32768,
-                    "components": [
-                        {
-                            "type": 9,
-                            "components": [
-                                {
-                                    "type": 10,
-                                    "content": f"**Definitions for _{define_word}_**"
-                                },
-                                *components
-                            ]
-                        }
-                    ]
-                }
+                return jsonify({
+                    "type": 4,
+                    "data": {
+                        "content": components,
+                        "flags": 64
+                    }
+                })
 
     elif command_name == "current":
         book = get_current_book(guild_id)
