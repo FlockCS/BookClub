@@ -124,11 +124,10 @@ def handle_schedule_select(raw_request, pending_selections):
 
 def handle_book_delete(guild_id):
     response = delete_current_book(guild_id)
-    print("RESPONSE", response)
 
     return jsonify({
         "type": 4,
         "data": {
-            "content": f"✅ Book '{response['volumeInfo']['title']}' has been removed from current reading!"
+            "content": f"✅ Book {response['title']} by {response['authors']} has been removed from current reading!"
         }
     })
