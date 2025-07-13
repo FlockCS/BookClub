@@ -88,7 +88,7 @@ def command_handler(raw_request):
     elif command_name == "current":
         book = get_current_book(guild_id)
         # 1️⃣ Nothing in DynamoDB yet
-        if book is None:
+        if not book:
             return jsonify({
                 "type": 4,
                 "data": {
