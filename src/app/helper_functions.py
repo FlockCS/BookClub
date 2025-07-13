@@ -15,7 +15,6 @@ def handle_book_select(raw_request, pending_selections):
             }
         })
 
-
     user_id = raw_request["member"]["user"]["id"]
     custom_id = raw_request["data"]["custom_id"]
 
