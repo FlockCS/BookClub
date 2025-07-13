@@ -35,84 +35,55 @@ def command_handler(raw_request):
 
         # Check if response is OK and JSON is valid
         if not response.ok:
-            # If request failed (404, etc)
-            message_content = {
-                "flags": 32768,
-                "components": [
-                    {
-                        "type": 9,
-                        "components": [
-                            {
-                                "type": 10,
-                                "content": f"❌ Could not find definitions for **{define_word}**"
-                            }
-                        ]
-                    }
-                ]
+            message_content = f"❌ Could not find definitions for **{define_word}**"
+            return jsonify({
+                "type": 4,
+                "data": {"content": message_content}
+            })
+
+        data = response.json()
+        if not data or not isinstance(data, list) or "meanings" not in data[0]:
+            message_content = f"❌ Could not find definitions for **{define_word}**"
+            return jsonify({
+                "type": 4,
+                "data": {"content": message_content}
+            })
+
+        # Organize definitions
+        definitions_by_pos = {}
+        for meaning in data[0]["meanings"]:
+            pos = meaning.get("partOfSpeech", "Unknown").capitalize()
+            definitions = [entry.get("definition", "") for entry in meaning.get("definitions", [])]
+            definitions_by_pos.setdefault(pos, []).extend(definitions)
+
+        # Optional: limit definitions per part of speech
+        max_defs_per_pos = 3
+        for pos in definitions_by_pos:
+            definitions_by_pos[pos] = definitions_by_pos[pos][:max_defs_per_pos]
+
+        # Convert to embed fields
+        fields = []
+        for part_of_speech, definitions in definitions_by_pos.items():
+            value = "\n".join([f"{idx + 1}. {definition}" for idx, definition in enumerate(definitions)])
+            fields.append({
+                "name": part_of_speech,
+                "value": value if value else "*No definitions available.*",
+                "inline": False
+            })
+
+        embed = {
+            "title": f"Definitions for _{define_word}_",
+            "fields": fields,
+            "color": 0x5865F2  # Discord blurple
+        }
+
+        return jsonify({
+            "type": 4,
+            "data": {
+                "embeds": [embed],
+                "flags": 64  # Optional: make ephemeral
             }
-        else:
-            data = response.json()
-
-            # Defensive: check data format before proceeding
-            if not data or not isinstance(data, list) or "meanings" not in data[0]:
-                message_content = {
-                    "flags": 32768,
-                    "components": [
-                        {
-                            "type": 9,
-                            "components": [
-                                {
-                                    "type": 10,
-                                    "content": f"❌ Could not find definitions for **{define_word}**"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            else:
-                definitions_by_pos = {}
-                for meaning in data[0]["meanings"]:
-                    pos = meaning.get("partOfSpeech", "Unknown").capitalize()
-                    definitions = [entry.get("definition", "") for entry in meaning.get("definitions", [])]
-                    definitions_by_pos.setdefault(pos, []).extend(definitions)
-
-                # Optional: limit definitions to avoid huge messages
-                max_defs_per_pos = 3
-                for pos in definitions_by_pos:
-                    definitions_by_pos[pos] = definitions_by_pos[pos][:max_defs_per_pos]
-
-                components = []
-                total_length = 0
-                max_length = 1800  # Safe margin below Discord 2000 char limit
-
-                for part_of_speech, definitions in definitions_by_pos.items():
-                    header = f"**• {part_of_speech}**"
-                    if total_length + len(header) > max_length:
-                        break
-                    components.append({"type": 10, "content": header})
-                    total_length += len(header)
-
-                    for idx, definition in enumerate(definitions, start=1):
-                        clean_def = ' '.join(definition.split())
-                        line = f"{idx}. {clean_def}"
-                        if total_length + len(line) > max_length:
-                            components.append({"type": 10, "content": "*...more definitions omitted.*"})
-                            total_length = max_length
-                            break
-                        components.append({"type": 10, "content": line})
-                        total_length += len(line)
-
-                    if total_length >= max_length:
-                        break
-                
-                print("COMPONENTS ", components)
-                return jsonify({
-                    "type": 4,
-                    "data": {
-                        "content": components,
-                        "flags": 64
-                    }
-                })
+        })
 
     elif command_name == "current":
         book = get_current_book(guild_id)
