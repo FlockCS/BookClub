@@ -81,7 +81,7 @@ def command_handler(raw_request):
             "type": 4,
             "data": {
                 "embeds": [embed],
-                "flags": 64  # Optional: make ephemeral
+                # "flags": 64  # Optional: make ephemeral
             }
         })
 
