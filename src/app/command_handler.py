@@ -104,7 +104,8 @@ def command_handler(raw_request):
 
                     if total_length >= max_length:
                         break
-                    
+                
+                print("COMPONENTS ", components)
                 message_content = {
                     "flags": 32768,
                     "components": [
