@@ -50,7 +50,9 @@ def interact(raw_request):
         elif custom_id == "reschedule_book":
             # @TODO: Make these functions in helper_functions
             return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
-
+        elif custom_id == "delete_book":
+            # @TODO: Make these functions in helper_functions
+            return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
         # default
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
         

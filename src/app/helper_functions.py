@@ -1,6 +1,6 @@
 from flask import jsonify
 from utils.utils import is_valid_future_date
-from utils.aws.dynamodb import put_book, get_current_book, get_cached_book_list
+from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list
 
 
 def handle_book_select(raw_request, pending_selections):
@@ -120,3 +120,15 @@ def handle_schedule_select(raw_request, pending_selections):
         }
     })
 
+
+
+def handle_book_delete(guild_id):
+    response = delete_current_book(guild_id)
+    print("RESPONSE", response)
+
+    return jsonify({
+        "type": 4,
+        "data": {
+            "content": f"✅ Book '{response['volumeInfo']['title']}' has been removed from current reading!"
+        }
+    })

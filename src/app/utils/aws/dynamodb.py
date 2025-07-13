@@ -60,11 +60,27 @@ def put_book(
 # Get the current book being read as well the next scheduled date
 def get_current_book(guild_id: str) -> dict[str, Any]:
     if not guild_id:
-        msg = f"guild_id missing."
-        raise Exception(msg)
+        raise Exception("guild_id missing.")
     
     response = book_table.get_item(Key={"guild_id": guild_id})
     return response.get("Item", {})
+
+
+def delete_current_book(guild_id: str) -> dict:
+    if not guild_id:
+        raise Exception("guild_id missing.")
+
+    try:
+        response = book_table.delete_item(
+            Key={"guild_id": guild_id},
+            ReturnValues="ALL_OLD"  # returns the deleted item attributes if it existed
+        )
+        # Return the old item if it was deleted, or None if no item found
+        return response.get("Attributes")
+    except Exception as e:
+        raise Exception(f"Failed to delete current book. {e}")
+
+
 
 # CACHING LOGIC
 def cache_book_list(

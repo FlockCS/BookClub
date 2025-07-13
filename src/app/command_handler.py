@@ -131,6 +131,12 @@ def command_handler(raw_request):
                     "label": "Finish",
                     "style": 1,
                     "custom_id": "finish_book"
+                },
+                {
+                    "type": 2,
+                    "label": "Delete",
+                    "style": 4,
+                    "custom_id": "delete_book"
                 }
             ]
         }
