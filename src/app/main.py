@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from mangum import Mangum
 from asgiref.wsgi import WsgiToAsgi
 from discord_interactions import verify_key_decorator
-from helper_functions import handle_book_select, handle_schedule_select
+from helper_functions import handle_book_delete, handle_book_select, handle_schedule_select
 from command_handler import command_handler
 from config import DISCORD_PUBLIC_KEY, IN_DEVELOPMENT
 
@@ -52,7 +52,7 @@ def interact(raw_request):
             return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
         elif custom_id == "delete_book":
             # @TODO: Make these functions in helper_functions
-            return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
+            return handle_book_delete(guild_id)
         # default
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
         
