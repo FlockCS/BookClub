@@ -41,7 +41,7 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
                         "type": 4,  # Text input
                         "custom_id": "discussion_date",
                         "style": 1,
-                        "label": f"{'New ' if reschedule else ''} Discussion Date {curr_book.get('discussion_date', 'TBD') if reschedule else '(MM-DD-YYYY)'}",
+                        "label": f"{'New Discussion Date | Previous: ' if reschedule else 'Discussion Date | '}{curr_book.get('discussion_date', 'TBD') if reschedule else '(MM-DD-YYYY)'}",
                         "min_length": 10,
                         "max_length": 10,
                         "placeholder": "03-28-2003",
