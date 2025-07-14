@@ -44,15 +44,13 @@ def interact(raw_request):
         custom_id = raw_request["data"]["custom_id"]
         # select book method
         if custom_id.startswith("select_book_"):
-            return handle_book_select(raw_request, pending_selections)
+            return handle_book_select(raw_request, pending_selections, reschedule=False)
         elif custom_id == "finish_book":
             # @TODO: Make these functions in helper_functions 
             return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
         elif custom_id == "reschedule_book":
-            # @TODO: Make these functions in helper_functions
-            return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
+            return handle_book_select(raw_request, pending_selections, reschedule=True)
         elif custom_id == "delete_book":
-            # @TODO: Make these functions in helper_functions
             return handle_book_delete(guild_id, user_id, role_ids)
         # default
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
@@ -60,14 +58,13 @@ def interact(raw_request):
     # modal request == 5
     if request_type == 5:
         custom_id = raw_request["data"]["custom_id"]
-        if custom_id == "select_schedule":
-            return handle_schedule_select(raw_request, pending_selections)
 
-        # default
-        return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
+        if custom_id.endswith("_reschedule"):
+            return handle_schedule_select(raw_request, pending_selections, reschedule=True)
+        else:
+            return handle_schedule_select(raw_request, pending_selections, reschedule=False)
+
     
-
-
     # handle the / commands (i.e. /hello, /echo, etc...)
     return command_handler(raw_request)
 
