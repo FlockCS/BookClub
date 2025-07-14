@@ -4,8 +4,8 @@ from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, 
 
 
 def handle_book_select(raw_request, pending_selections, reschedule: bool):
-    curr_book = get_current_book(guild_id)
     guild_id = raw_request.get("guild_id")
+    curr_book = get_current_book(guild_id)
     # do a check to make sure there isnt a current book already
     if curr_book and not reschedule:
         return jsonify({
