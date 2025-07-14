@@ -5,7 +5,8 @@ import os
 @pytest.fixture()
 def mock_env_vars():
     with patch.dict(os.environ, {
-        "BOOK_TABLE": "test_book_table",
+        "CURRENT_BOOK_TABLE": "test_current_book_table",
+        "HISTORY_BOOK_TABLE": "test_history_book_table",
         "CACHE_TABLE": "test_cache_table"
     }):
         yield

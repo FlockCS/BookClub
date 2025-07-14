@@ -30,7 +30,7 @@ def test_put_book_into_table_fail_missing_data(mock_dynamodb, mock_env_vars):
             pages_or_chapters=''
         )
 
-@patch("app.utils.aws.dynamodb.book_table")
+@patch("app.utils.aws.dynamodb.current_book_table")
 def test_put_book_into_table_failed_put(mock_book_table, mock_dynamodb, mock_env_vars):
     mock_book_table.put_item.side_effect = Exception("failed put")
 

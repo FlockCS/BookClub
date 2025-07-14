@@ -1,6 +1,6 @@
 from flask import jsonify
 from utils.utils import is_valid_future_date
-from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book
+from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
 
 
 def handle_book_select(raw_request, pending_selections, reschedule: bool):
@@ -29,10 +29,16 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
         curr_book_title = selected_book['volumeInfo']['title']
     else:
         curr_book_title = curr_book.get("title", "Unknown Title")
+    
+    # Truncate book title if too long for Discord modal title (max 45 chars)
+    max_title_len = 45
+    prefix = "Reschedule Discussion for " if reschedule else "Plan Discussion for "
+    allowed_book_len = max_title_len - len(prefix) - 3  # 3 for "..."
+    display_title = curr_book_title[:allowed_book_len] + ("..." if len(curr_book_title) > allowed_book_len else "")
 
     modal = {
         "custom_id": f"select_schedule_{'reschedule' if reschedule else 'new'}",
-        "title": f"{'Reschedule' if reschedule else 'Plan'} Discussion for {curr_book_title}",
+        "title": f"{prefix}{display_title}",
         "components": [
             {
                 "type": 1,  # Action row
@@ -134,21 +140,102 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     })
 
 
-def handle_book_delete(guild_id, user_id, role_ids):
-
-    if not any (role_id == '1393651462558449815' for role_id in role_ids):
+def handle_confirm_book_delete(guild_id, user_id, role_ids):
+    if not any(role_id == '1393651462558449815' for role_id in role_ids):
         return jsonify({
             "type": 4,
             "data": {
-                "content": f"❌ Sorry <@{user_id}>, You don't have permission to delete the current book."
+                "content": f"❌ Sorry <@{user_id}>, You don't have permission to delete the current book.",
+                "flags": 64  # Ephemeral
             }
         })
-    
-    response = delete_current_book(guild_id)
 
     return jsonify({
         "type": 4,
         "data": {
-            "content": f"✅ Book {response['title']} by {response['authors']} has been removed from current reading!"
+            "content": "⚠️ Are you sure you want to delete the current book?",
+            "flags": 64,  # Ephemeral
+            "components": [
+                {
+                    "type": 1,  # Action row
+                    "components": [
+                        {
+                            "type": 2,  # Button
+                            "style": 2,  # Secondary (gray)
+                            "label": "No",
+                            "custom_id": f"delete_confirm_no_{guild_id}"
+                        },
+                        {
+                            "type": 2,  # Button
+                            "style": 4,  # Danger (red)
+                            "label": "Yes",
+                            "custom_id": f"delete_confirm_yes_{guild_id}"
+                        }
+                    ]
+                }
+            ]
+        }
+    })
+
+def handle_book_delete(guild_id, user_id, role_ids, confirmation):
+
+    if not any(role_id == '1393651462558449815' for role_id in role_ids):
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"❌ Sorry <@{user_id}>, You don't have permission to delete the current book.",
+                "flags": 64  # Ephemeral
+            }
+        })
+    # If confirmation is True, proceed with deletion
+    if confirmation:
+        response = delete_current_book(guild_id)
+        if not response:
+            return jsonify({
+                "type": 4,
+                "data": {
+                    "content": "❗ No current book found to delete.",
+                    "flags": 64  # Ephemeral
+                }
+            })
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"✅ Book {response['title']} by {response['authors']} has been removed from current reading!",
+            }
+        })
+    else:
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"❌ Cancelled deletion of the current book.",
+                "flags": 64  # Ephemeral
+            }
+        })
+
+
+def handle_finish_book(guild_id, user_id, role_ids):
+    if not any(role_id == '1393651462558449815' for role_id in role_ids):
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"❌ Sorry <@{user_id}>, You don't have permission to finish the current book.",
+                "flags": 64  # Ephemeral
+            }
+        })
+
+    response = finish_current_book(guild_id)
+    if not response:
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": "❗ No current book found to finish.",
+                "flags": 64  # Ephemeral
+            }
+        })
+    return jsonify({
+        "type": 4,
+        "data": {
+            "content": f"✅ Book {response['title']} by {response['authors']} has been finished! Congratulations! 🎉 View all the books read by the server with /history command.",
         }
     })
