@@ -37,7 +37,7 @@ export class BookClubBotStack extends cdk.Stack {
       },
     });
 
-    // DynamoDB Book table
+    // DynamoDB Book table that stores all the books read
     // Create the table: one partition key (guild) + one sort key (ISO date)
     const historyTable = new dynamodb.Table(
       this,
@@ -52,7 +52,29 @@ export class BookClubBotStack extends cdk.Stack {
       }
     );
     historyTable.grantReadWriteData(dockerFunction);
-    dockerFunction.addEnvironment('BOOK_TABLE', historyTable.tableName);
+    dockerFunction.addEnvironment('HISTORY_BOOK_TABLE', historyTable.tableName);
+
+    // DynamoDB Book table that stores the current book being read
+    // Create the table: one partition key (guild) + one sort key (ISO date)
+    const currentBookTable = new dynamodb.Table(
+      this,
+      `${props.stage}CurrentBook`,
+      {
+        tableName: `${props.stage}-BookClubCurrent`,
+        partitionKey: {
+          name: 'guild_id',
+          type: dynamodb.AttributeType.STRING
+        },
+        sortKey: {
+          name: 'user_id',
+          type: dynamodb.AttributeType.STRING
+        },
+        billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
+      }
+    );
+    currentBookTable.grantReadWriteData(dockerFunction);
+    dockerFunction.addEnvironment('CURRENT_BOOK_TABLE', currentBookTable.tableName);
 
     // DynamoDB Cache table
     const cacheTable = new dynamodb.Table(

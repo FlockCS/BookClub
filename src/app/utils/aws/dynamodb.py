@@ -7,11 +7,13 @@ import json
 
 dynamodb = boto3.resource("dynamodb")
 
-book_table_name = os.environ["BOOK_TABLE"]
+current_book_table_name = os.environ["CURRENT_BOOK_TABLE"]
+history_table_name = os.environ["HISTORY_BOOK_TABLE"]
 cache_table_name = os.environ["CACHE_TABLE"]
 
 # tables
-book_table = dynamodb.Table(book_table_name)
+current_book_table = dynamodb.Table(current_book_table_name)
+history_book_table = dynamodb.Table(history_table_name)
 cache_table = dynamodb.Table(cache_table_name)
 
 
@@ -41,7 +43,7 @@ def put_book(
         # Create a unique primary key for current selection (e.g., "CURRENT_BOOK")
 
         # Put item into DynamoDB table
-        book_table.put_item(
+        current_book_table.put_item(
             Item={
                 "guild_id": guild_id,  # Partition key (table schema dependent)
                 "discussion_date": discussion_date,
@@ -62,7 +64,7 @@ def get_current_book(guild_id: str) -> dict[str, Any]:
     if not guild_id:
         raise Exception("guild_id missing.")
     
-    response = book_table.get_item(Key={"guild_id": guild_id})
+    response = current_book_table.get_item(Key={"guild_id": guild_id})
     return response.get("Item", {})
 
 # delete the current book in case the server does not want to read it
@@ -71,7 +73,7 @@ def delete_current_book(guild_id: str) -> dict:
         raise Exception("guild_id missing.")
 
     try:
-        response = book_table.delete_item(
+        response = current_book_table.delete_item(
             Key={"guild_id": guild_id},
             ReturnValues="ALL_OLD"  # returns the deleted item attributes if it existed
         )
@@ -87,7 +89,7 @@ def update_discussion_date_current_book(guild_id: str, discussion_date: datetime
         raise Exception("Both guild_id and new discussion_date are required.")
 
     try:
-        response = book_table.update_item(
+        response = current_book_table.update_item(
             Key={"guild_id": guild_id},
             UpdateExpression="SET #d = :new_date, #t = :updated_at",
             ExpressionAttributeNames={
