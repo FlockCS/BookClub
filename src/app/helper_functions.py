@@ -134,21 +134,67 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     })
 
 
-def handle_book_delete(guild_id, user_id, role_ids):
-
-    if not any (role_id == '1393651462558449815' for role_id in role_ids):
+def handle_confirm_book_delete(guild_id, user_id, role_ids):
+    if not any(role_id == '1393651462558449815' for role_id in role_ids):
         return jsonify({
             "type": 4,
             "data": {
-                "content": f"❌ Sorry <@{user_id}>, You don't have permission to delete the current book."
+                "content": f"❌ Sorry <@{user_id}>, You don't have permission to delete the current book.",
+                "flags": 64  # Ephemeral
             }
         })
-    
-    response = delete_current_book(guild_id)
 
     return jsonify({
         "type": 4,
         "data": {
-            "content": f"✅ Book {response['title']} by {response['authors']} has been removed from current reading!"
+            "content": "⚠️ Are you sure you want to delete the current book?",
+            "flags": 64,  # Ephemeral
+            "components": [
+                {
+                    "type": 1,  # Action row
+                    "components": [
+                        {
+                            "type": 2,  # Button
+                            "style": 2,  # Secondary (gray)
+                            "label": "No",
+                            "custom_id": f"delete_confirm_no_{guild_id}"
+                        },
+                        {
+                            "type": 2,  # Button
+                            "style": 4,  # Danger (red)
+                            "label": "Yes",
+                            "custom_id": f"delete_confirm_yes_{guild_id}"
+                        }
+                    ]
+                }
+            ]
         }
     })
+
+def handle_book_delete(guild_id, user_id, role_ids, confirmation):
+
+    if not any(role_id == '1393651462558449815' for role_id in role_ids):
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"❌ Sorry <@{user_id}>, You don't have permission to delete the current book.",
+                "flags": 64  # Ephemeral
+            }
+        })
+    # If confirmation is True, proceed with deletion
+    if confirmation:
+        response = delete_current_book(guild_id)
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"✅ Book {response['title']} by {response['authors']} has been removed from current reading!",
+            }
+        })
+    else:
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"❌ Cancelled deletion of the current book.",
+                "flags": 64  # Ephemeral
+            }
+        })

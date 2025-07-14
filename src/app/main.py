@@ -51,7 +51,11 @@ def interact(raw_request):
         elif custom_id == "reschedule_book":
             return handle_book_select(raw_request, pending_selections, reschedule=True)
         elif custom_id == "delete_book":
-            return handle_book_delete(guild_id, user_id, role_ids)
+            return handle_book_delete(guild_id, user_id, role_ids, confirmation=False)
+        elif custom_id == f"delete_confirm_no_{guild_id}":
+            return handle_book_delete(guild_id, user_id, role_ids, confirmation=False)
+        elif custom_id == f"delete_confirm_yes_{guild_id}":
+            return handle_book_delete(guild_id, user_id, role_ids, confirmation=True)
         # default
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
         
