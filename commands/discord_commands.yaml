@@ -32,4 +32,10 @@
 - name: current
   description: Get current book being read and scheduled meeting date
 
-
+- name: define
+  description: Define a word
+  options:
+    - name: word
+      description: Get the definition of this word
+      type: 3 # string
+      required: true

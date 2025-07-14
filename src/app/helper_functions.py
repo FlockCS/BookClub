@@ -1,6 +1,6 @@
 from flask import jsonify
 from utils.utils import is_valid_future_date
-from utils.aws.dynamodb import put_book, get_current_book, get_cached_book_list
+from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list
 
 
 def handle_book_select(raw_request, pending_selections):
@@ -14,7 +14,6 @@ def handle_book_select(raw_request, pending_selections):
                 "flags": 64  # Ephemeral
             }
         })
-
 
     user_id = raw_request["member"]["user"]["id"]
     custom_id = raw_request["data"]["custom_id"]
@@ -120,3 +119,22 @@ def handle_schedule_select(raw_request, pending_selections):
         }
     })
 
+
+
+def handle_book_delete(guild_id, user_id, role_ids):
+    if not any (role_id == '1393651462558449815' for role_id in role_ids):
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"❌ Sorry <@{user_id}>, you don't have permission to delete the current book."
+            }
+        })
+    
+    response = delete_current_book(guild_id)
+
+    return jsonify({
+        "type": 4,
+        "data": {
+            "content": f"✅ Book {response['title']} by {response['authors']} has been removed from current reading!"
+        }
+    })

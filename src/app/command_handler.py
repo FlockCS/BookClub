@@ -1,6 +1,6 @@
 from flask import json, jsonify
 import requests
-from config import GOOGLE_BOOKS_API_URL
+from config import GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT, DICTIONARY_API_URL
 from utils.aws.dynamodb import get_current_book, cache_book_list, get_cached_book_list
 from utils.utils import random_greeting
 
@@ -27,11 +27,68 @@ def command_handler(raw_request):
     elif command_name == "echo":
         original_message = data["options"][0]["value"]
         message_content = f"Echoing: {original_message}"
+    
+    elif command_name == "define":
+        define_word = data["options"][0]["value"]
+        URL = f"{DICTIONARY_API_URL}{define_word}"
+        response = requests.get(url=URL)
+
+        # Check if response is OK and JSON is valid
+        if not response.ok:
+            message_content = f"❌ Could not find definitions for **{define_word}**"
+            return jsonify({
+                "type": 4,
+                "data": {"content": message_content}
+            })
+
+        data = response.json()
+        if not data or not isinstance(data, list) or "meanings" not in data[0]:
+            message_content = f"❌ Could not find definitions for **{define_word}**"
+            return jsonify({
+                "type": 4,
+                "data": {"content": message_content}
+            })
+
+        # Organize definitions
+        definitions_by_pos = {}
+        for meaning in data[0]["meanings"]:
+            pos = meaning.get("partOfSpeech", "Unknown").capitalize()
+            definitions = [entry.get("definition", "") for entry in meaning.get("definitions", [])]
+            definitions_by_pos.setdefault(pos, []).extend(definitions)
+
+        # Optional: limit definitions per part of speech
+        max_defs_per_pos = 3
+        for pos in definitions_by_pos:
+            definitions_by_pos[pos] = definitions_by_pos[pos][:max_defs_per_pos]
+
+        # Convert to embed fields
+        fields = []
+        for part_of_speech, definitions in definitions_by_pos.items():
+            value = "\n".join([f"{idx + 1}. {definition}" for idx, definition in enumerate(definitions)])
+            fields.append({
+                "name": part_of_speech,
+                "value": value if value else "*No definitions available.*",
+                "inline": False
+            })
+
+        embed = {
+            "title": f"Definitions for _{define_word}_",
+            "fields": fields,
+            "color": 0x5865F2  # Discord blurple
+        }
+
+        return jsonify({
+            "type": 4,
+            "data": {
+                "embeds": [embed],
+                # "flags": 64  # Optional: make ephemeral
+            }
+        })
 
     elif command_name == "current":
         book = get_current_book(guild_id)
         # 1️⃣ Nothing in DynamoDB yet
-        if book is None:
+        if not book:
             return jsonify({
                 "type": 4,
                 "data": {
@@ -74,6 +131,12 @@ def command_handler(raw_request):
                     "label": "Finish",
                     "style": 1,
                     "custom_id": "finish_book"
+                },
+                {
+                    "type": 2,
+                    "label": "Delete",
+                    "style": 4,
+                    "custom_id": "delete_book"
                 }
             ]
         }
