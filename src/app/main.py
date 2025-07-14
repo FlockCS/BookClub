@@ -31,6 +31,7 @@ def interact(raw_request):
     data = raw_request["data"]
     request_type = raw_request["type"]
     user_id = raw_request["member"]["user"]["id"]
+    role_ids = raw_request["member"]["roles"]
     guild_id = raw_request.get("guild_id")
     
 
@@ -52,7 +53,7 @@ def interact(raw_request):
             return jsonify({"type": 4, "data": {"content": IN_DEVELOPMENT}})
         elif custom_id == "delete_book":
             # @TODO: Make these functions in helper_functions
-            return handle_book_delete(guild_id)
+            return handle_book_delete(guild_id, user_id, role_ids)
         # default
         return jsonify({"type": 4, "data": {"content": "Unknown interaction"}})
         

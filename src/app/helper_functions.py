@@ -121,7 +121,15 @@ def handle_schedule_select(raw_request, pending_selections):
 
 
 
-def handle_book_delete(guild_id):
+def handle_book_delete(guild_id, user_id, role_ids):
+    if not any (role_id == '1393651462558449815' for role_id in role_ids):
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"❌ Sorry <@{user_id}>, you don't have permission to delete the current book."
+            }
+        })
+    
     response = delete_current_book(guild_id)
 
     return jsonify({
