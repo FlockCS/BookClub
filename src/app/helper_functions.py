@@ -33,7 +33,7 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
     # Truncate book title if too long for Discord modal title (max 45 chars)
     max_title_len = 45
     prefix = "Reschedule Discussion for " if reschedule else "Plan Discussion for "
-    allowed_book_len = max_title_len - len(prefix)
+    allowed_book_len = max_title_len - len(prefix) - 3  # 3 for "..."
     display_title = curr_book_title[:allowed_book_len] + ("..." if len(curr_book_title) > allowed_book_len else "")
 
     modal = {
