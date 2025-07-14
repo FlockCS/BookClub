@@ -93,7 +93,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         return jsonify({
             "type": 4,
             "data": {
-                "content": f"✅ {response.get("title", "Unknown Title")} has been rescheduled from {response.get("discussion_date", "TBD")} to {discussion_date}!"
+                "content": f"✅ {response.get('title', 'Unknown Title')} has been rescheduled from {response.get('discussion_date', 'TBD')} to {discussion_date}!"
             }
         })
     # Retrieve the selected book from pending selections
