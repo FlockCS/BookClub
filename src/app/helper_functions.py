@@ -1,12 +1,13 @@
 from flask import jsonify
 from utils.utils import is_valid_future_date
-from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list
+from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book
 
 
-def handle_book_select(raw_request, pending_selections):
+def handle_book_select(raw_request, pending_selections, reschedule: bool):
+    curr_book = get_current_book(guild_id)
     guild_id = raw_request.get("guild_id")
     # do a check to make sure there isnt a current book already
-    if get_current_book(guild_id):
+    if curr_book and not reschedule:
         return jsonify({
             "type": 4,
             "data": {
@@ -14,20 +15,24 @@ def handle_book_select(raw_request, pending_selections):
                 "flags": 64  # Ephemeral
             }
         })
+    
+    curr_book_title = None
+    if not reschedule:
+        user_id = raw_request["member"]["user"]["id"]
+        custom_id = raw_request["data"]["custom_id"]
 
-    user_id = raw_request["member"]["user"]["id"]
-    custom_id = raw_request["data"]["custom_id"]
+        selected_idx = int(custom_id.split("_")[-1])
+        current_books_list = get_cached_book_list(guild_id=guild_id)
+        selected_book = current_books_list[selected_idx]
 
-    selected_idx = int(custom_id.split("_")[-1])
-    current_books_list = get_cached_book_list(guild_id=guild_id)
-    selected_book = current_books_list[selected_idx]
-
-    pending_selections.setdefault(guild_id, {})[user_id] = selected_book
-    print(f"pending selections BOOKS LIST: ", pending_selections)
+        pending_selections.setdefault(guild_id, {})[user_id] = selected_book
+        curr_book_title = {selected_book['volumeInfo']['title']}
+    else:
+        curr_book_title = curr_book.get("title", "Unknown Title")
 
     modal = {
-        "custom_id": "select_schedule",
-        "title": "Plan Discussion",
+        "custom_id": f"select_schedule_{'reschedule' if reschedule else 'new'}",
+        "title": f"Plan Discussion for {curr_book_title}",
         "components": [
             {
                 "type": 1,  # Action row
@@ -67,7 +72,8 @@ def handle_book_select(raw_request, pending_selections):
         "data": modal
     })
 
-def handle_schedule_select(raw_request, pending_selections):
+def handle_schedule_select(raw_request, pending_selections, reschedule):
+
     user_id = raw_request["member"]["user"]["id"]
     guild_id = raw_request.get("guild_id")
     
@@ -82,6 +88,14 @@ def handle_schedule_select(raw_request, pending_selections):
             elif component["custom_id"] == "pages_or_chapters":
                 pages_or_chapters = component["value"]
 
+    if reschedule:
+        response = update_discussion_date_current_book(guild_id, discussion_date)
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"✅ {response.get("title", "Unknown Title")} has been rescheduled from {response.get("discussion_date", "TBD")} to {discussion_date}!"
+            }
+        })
     # Retrieve the selected book from pending selections
     selected_book = pending_selections.get(guild_id, {}).get(user_id)
 
@@ -120,13 +134,13 @@ def handle_schedule_select(raw_request, pending_selections):
     })
 
 
-
 def handle_book_delete(guild_id, user_id, role_ids):
+
     if not any (role_id == '1393651462558449815' for role_id in role_ids):
         return jsonify({
             "type": 4,
             "data": {
-                "content": f"❌ Sorry <@{user_id}>, you don't have permission to delete the current book."
+                "content": f"❌ Sorry <@{user_id}>, You don't have permission to delete the current book."
             }
         })
     

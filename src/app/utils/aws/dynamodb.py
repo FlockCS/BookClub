@@ -65,7 +65,7 @@ def get_current_book(guild_id: str) -> dict[str, Any]:
     response = book_table.get_item(Key={"guild_id": guild_id})
     return response.get("Item", {})
 
-
+# delete the current book in case the server does not want to read it
 def delete_current_book(guild_id: str) -> dict:
     if not guild_id:
         raise Exception("guild_id missing.")
@@ -80,6 +80,29 @@ def delete_current_book(guild_id: str) -> dict:
     except Exception as e:
         raise Exception(f"Failed to delete current book. {e}")
 
+
+# update the schedule of the book
+def update_discussion_date_current_book(guild_id: str, discussion_date: datetime) -> None:
+    if not guild_id or not discussion_date:
+        raise Exception("Both guild_id and new discussion_date are required.")
+
+    try:
+        response = book_table.update_item(
+            Key={"guild_id": guild_id},
+            UpdateExpression="SET #d = :new_date, #t = :updated_at",
+            ExpressionAttributeNames={
+                "#d": "discussion_date",
+                "#t": "timestamp"
+            },
+            ExpressionAttributeValues={
+                ":new_date": discussion_date,
+                ":updated_at": datetime.now(timezone.utc).isoformat()
+            },
+            ReturnValues="ALL_OLD"
+        )
+        return response.get("Attributes", {})
+    except Exception as e:
+        raise Exception(f"Failed to update discussion date for guild {guild_id}. {e}")
 
 
 # CACHING LOGIC
