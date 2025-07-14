@@ -29,10 +29,16 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
         curr_book_title = selected_book['volumeInfo']['title']
     else:
         curr_book_title = curr_book.get("title", "Unknown Title")
+    
+    # Truncate book title if too long for Discord modal title (max 45 chars)
+    max_title_len = 45
+    prefix = "Reschedule Discussion for " if reschedule else "Plan Discussion for "
+    allowed_book_len = max_title_len - len(prefix)
+    display_title = curr_book_title[:allowed_book_len] + ("..." if len(curr_book_title) > allowed_book_len else "")
 
     modal = {
         "custom_id": f"select_schedule_{'reschedule' if reschedule else 'new'}",
-        "title": f"{'Reschedule' if reschedule else 'Plan'} Discussion for {curr_book_title}",
+        "title": f"{prefix}{display_title}",
         "components": [
             {
                 "type": 1,  # Action row
@@ -184,6 +190,14 @@ def handle_book_delete(guild_id, user_id, role_ids, confirmation):
     # If confirmation is True, proceed with deletion
     if confirmation:
         response = delete_current_book(guild_id)
+        if not response:
+            return jsonify({
+                "type": 4,
+                "data": {
+                    "content": "❗ No current book found to delete.",
+                    "flags": 64  # Ephemeral
+                }
+            })
         return jsonify({
             "type": 4,
             "data": {
