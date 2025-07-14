@@ -26,13 +26,13 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
         selected_book = current_books_list[selected_idx]
 
         pending_selections.setdefault(guild_id, {})[user_id] = selected_book
-        curr_book_title = {selected_book['volumeInfo']['title']}
+        curr_book_title = selected_book['volumeInfo']['title']
     else:
         curr_book_title = curr_book.get("title", "Unknown Title")
 
     modal = {
         "custom_id": f"select_schedule_{'reschedule' if reschedule else 'new'}",
-        "title": f"Plan Discussion for {curr_book_title}",
+        "title": f"{'Reschedule' if reschedule else 'Plan'} Discussion for {curr_book_title}",
         "components": [
             {
                 "type": 1,  # Action row
@@ -41,7 +41,7 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
                         "type": 4,  # Text input
                         "custom_id": "discussion_date",
                         "style": 1,
-                        "label": "Discussion Date (MM-DD-YYYY)",
+                        "label": f"{'New ' if reschedule else ''} Discussion Date {curr_book.get('discussion_date', 'TBD') if reschedule else '(MM-DD-YYYY)'}",
                         "min_length": 10,
                         "max_length": 10,
                         "placeholder": "03-28-2003",
