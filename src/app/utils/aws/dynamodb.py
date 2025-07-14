@@ -106,6 +106,21 @@ def update_discussion_date_current_book(guild_id: str, discussion_date: datetime
     except Exception as e:
         raise Exception(f"Failed to update discussion date for guild {guild_id}. {e}")
 
+def finish_current_book(guild_id: str) -> None:    
+    if not guild_id:
+        raise Exception("guild_id is required to finish the current book.")
+
+    # Get the current book
+    current_book = get_current_book(guild_id)
+    
+    if not current_book:
+        raise Exception(f"No current book found for guild {guild_id}.")
+
+    # Move to history table
+    history_book_table.put_item(Item=current_book)
+
+    # Delete from current book table
+    return delete_current_book(guild_id)
 
 # CACHING LOGIC
 def cache_book_list(

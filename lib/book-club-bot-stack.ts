@@ -60,13 +60,9 @@ export class BookClubBotStack extends cdk.Stack {
       this,
       `${props.stage}CurrentBook`,
       {
-        tableName: `${props.stage}-BookClubCurrent`,
+        tableName: `${props.stage}-BookClubCurrentBook`,
         partitionKey: {
           name: 'guild_id',
-          type: dynamodb.AttributeType.STRING
-        },
-        sortKey: {
-          name: 'user_id',
           type: dynamodb.AttributeType.STRING
         },
         billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,

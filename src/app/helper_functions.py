@@ -1,6 +1,6 @@
 from flask import jsonify
 from utils.utils import is_valid_future_date
-from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book
+from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
 
 
 def handle_book_select(raw_request, pending_selections, reschedule: bool):
@@ -212,3 +212,30 @@ def handle_book_delete(guild_id, user_id, role_ids, confirmation):
                 "flags": 64  # Ephemeral
             }
         })
+
+
+def handle_finish_book(guild_id, user_id, role_ids):
+    if not any(role_id == '1393651462558449815' for role_id in role_ids):
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": f"❌ Sorry <@{user_id}>, You don't have permission to finish the current book.",
+                "flags": 64  # Ephemeral
+            }
+        })
+
+    response = finish_current_book(guild_id)
+    if not response:
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": "❗ No current book found to finish.",
+                "flags": 64  # Ephemeral
+            }
+        })
+    return jsonify({
+        "type": 4,
+        "data": {
+            "content": f"✅ Book {response['title']} by {response['authors']} has been finished! Congratulations! 🎉 View all the books read by the server with /history command.",
+        }
+    })
