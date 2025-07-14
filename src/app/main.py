@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from mangum import Mangum
 from asgiref.wsgi import WsgiToAsgi
 from discord_interactions import verify_key_decorator
-from helper_functions import handle_book_delete, handle_book_select, handle_schedule_select
+from helper_functions import handle_book_delete, handle_book_select, handle_schedule_select, handle_confirm_book_delete
 from command_handler import command_handler
 from config import DISCORD_PUBLIC_KEY, IN_DEVELOPMENT
 
@@ -51,7 +51,7 @@ def interact(raw_request):
         elif custom_id == "reschedule_book":
             return handle_book_select(raw_request, pending_selections, reschedule=True)
         elif custom_id == "delete_book":
-            return handle_book_delete(guild_id, user_id, role_ids, confirmation=False)
+            return handle_confirm_book_delete(guild_id, user_id, role_ids)
         elif custom_id == f"delete_confirm_no_{guild_id}":
             return handle_book_delete(guild_id, user_id, role_ids, confirmation=False)
         elif custom_id == f"delete_confirm_yes_{guild_id}":
