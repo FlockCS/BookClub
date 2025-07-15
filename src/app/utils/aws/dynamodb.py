@@ -23,7 +23,8 @@ def put_book(
         user_id: str, 
         selected_book: dict[str, dict], 
         discussion_date: datetime, 
-        pages_or_chapters
+        pages_or_chapters,
+        discord_event_id: str = None
     ) -> None:
 
     if not all([guild_id, user_id, selected_book, discussion_date, pages_or_chapters]):
@@ -43,18 +44,19 @@ def put_book(
         # Create a unique primary key for current selection (e.g., "CURRENT_BOOK")
 
         # Put item into DynamoDB table
-        current_book_table.put_item(
-            Item={
-                "guild_id": guild_id,  # Partition key (table schema dependent)
-                "discussion_date": discussion_date,
-                "title": title,
-                "authors": authors,
-                "isbn": isbn,
-                "set_by_user": user_id,
-                "set_page_or_chapter": pages_or_chapters,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-            }
-        )
+        item = {
+            "guild_id": guild_id,  # Partition key (table schema dependent)
+            "discussion_date": discussion_date,
+            "title": title,
+            "authors": authors,
+            "isbn": isbn,
+            "set_by_user": user_id,
+            "set_page_or_chapter": pages_or_chapters,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+        if discord_event_id:
+            item["discord_event_id"] = discord_event_id
+        current_book_table.put_item(Item=item)
     except Exception as e:
         msg = f"failed to put book {selected_book} into table. {e}"
         raise Exception(msg)
@@ -84,22 +86,23 @@ def delete_current_book(guild_id: str) -> dict:
 
 
 # update the schedule of the book
-def update_discussion_date_current_book(guild_id: str, discussion_date: datetime) -> None:
+def update_discussion_date_current_book(guild_id: str, discussion_date: datetime, discord_event_id: str = None) -> None:
     if not guild_id or not discussion_date:
         raise Exception("Both guild_id and new discussion_date are required.")
 
     try:
+        update_expr = "SET #d = :new_date, #t = :updated_at"
+        expr_attr_names = {"#d": "discussion_date", "#t": "timestamp"}
+        expr_attr_values = {":new_date": discussion_date, ":updated_at": datetime.now(timezone.utc).isoformat()}
+        if discord_event_id:
+            update_expr += ", #e = :event_id"
+            expr_attr_names["#e"] = "discord_event_id"
+            expr_attr_values[":event_id"] = discord_event_id
         response = current_book_table.update_item(
             Key={"guild_id": guild_id},
-            UpdateExpression="SET #d = :new_date, #t = :updated_at",
-            ExpressionAttributeNames={
-                "#d": "discussion_date",
-                "#t": "timestamp"
-            },
-            ExpressionAttributeValues={
-                ":new_date": discussion_date,
-                ":updated_at": datetime.now(timezone.utc).isoformat()
-            },
+            UpdateExpression=update_expr,
+            ExpressionAttributeNames=expr_attr_names,
+            ExpressionAttributeValues=expr_attr_values,
             ReturnValues="ALL_OLD"
         )
         return response.get("Attributes", {})

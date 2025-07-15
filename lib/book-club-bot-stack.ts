@@ -6,6 +6,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 export interface BookClubBotStackProps extends cdk.StackProps {
   stage: string;
   discordPublicKey: string;
+  discordToken: string;
   env: { [key: string]: string };
 }
 
@@ -24,6 +25,7 @@ export class BookClubBotStack extends cdk.Stack {
         architecture: lambda.Architecture.X86_64,
         environment: {
           DISCORD_PUBLIC_KEY: props.discordPublicKey,
+          DISCORD_TOKEN: props.discordToken,
         },
       }
     );
