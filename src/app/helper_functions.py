@@ -94,6 +94,16 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
             elif component["custom_id"] == "pages_or_chapters":
                 pages_or_chapters = component["value"]
 
+    # Validate discussion date for both new selections and rescheduling
+    if not is_valid_future_date(discussion_date):
+        return jsonify({
+            "type": 4,
+            "data": {
+                "content": "❌ Please enter a valid future date in MM-DD-YYYY format.",
+                "flags": 64  # Ephemeral message
+            }
+        })
+
     if reschedule:
         response = update_discussion_date_current_book(guild_id, discussion_date)
         return jsonify({
@@ -102,6 +112,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                 "content": f"✅ {response.get('title', 'Unknown Title')} has been rescheduled from {response.get('discussion_date', 'TBD')} to {discussion_date}!"
             }
         })
+    
     # Retrieve the selected book from pending selections
     selected_book = pending_selections.get(guild_id, {}).get(user_id)
 
@@ -111,16 +122,6 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
             "data": {
                 "content": "❗ No book selected to save. Please try again.",
                 "flags": 64
-            }
-        })
-
-    # Validate discussion date
-    if not is_valid_future_date(discussion_date):
-        return jsonify({
-            "type": 4,
-            "data": {
-                "content": "❌ Please enter a valid future date in MM-DD-YYYY format.",
-                "flags": 64  # Ephemeral message
             }
         })
 
@@ -236,6 +237,6 @@ def handle_finish_book(guild_id, user_id, role_ids):
     return jsonify({
         "type": 4,
         "data": {
-            "content": f"✅ Book {response['title']} by {response['authors']} has been finished! Congratulations! 🎉 View all the books read by the server with /history command.",
+            "content": f"✅ Book {response['title']} by {response['authors']} has been finished! Congratulations! 🎉",
         }
     })
