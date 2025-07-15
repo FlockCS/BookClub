@@ -111,7 +111,7 @@ def update_discussion_date_current_book(guild_id: str, discussion_date: str, pag
             UpdateExpression=update_expr,
             ExpressionAttributeNames=expr_attr_names,
             ExpressionAttributeValues=expr_attr_values,
-            ReturnValues="ALL_NEW"  # returns the updated item attributes
+            ReturnValues="ALL_OLD"  # returns the old item attributes
         )
         return response.get("Attributes", {})
     except Exception as e:
