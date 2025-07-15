@@ -76,5 +76,6 @@ jobs:
         run: cdk deploy AlphaBookClubBotStack --require-approval never
         env:
           ENVIRONMENT: alpha
+          ALPHA_DISCORD_TOKEN: ${{ secrets.ALPHA_DISCORD_TOKEN }}
           CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}

@@ -76,5 +76,6 @@ jobs:
         run: cdk deploy ProdBookClubBotStack --require-approval never
         env:
           ENVIRONMENT: prod
+          PROD_DISCORD_TOKEN: ${{ secrets.PROD_DISCORD_TOKEN }}
           CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
