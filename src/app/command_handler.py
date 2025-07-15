@@ -186,7 +186,9 @@ def command_handler(raw_request):
         books = response.json().get("items", [])
 
         if not books:
-            message_content = f"No books found for '{query_options}'."
+            fields = [f"{k.capitalize()}: {v}" for k, v in query_options.items()]
+            query_str = ", ".join(fields)
+            message_content = f"No books found for {query_str}."
         else:
             # cache the book list to use later
             # current_books_list[guild_id] = books  # save for button click handler
