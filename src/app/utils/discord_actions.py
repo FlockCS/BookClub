@@ -62,9 +62,13 @@ def get_general_voice_channel_id(guild_id):
 
 def delete_guild_event(guild_id, event_id):
     """
-    Delete a Discord scheduled event.
+    Delete a Discord scheduled event if it exists.
+    Returns True if deleted, False if not found, raises for other errors.
     """
     url = f"{DISCORD_API_BASE}/guilds/{guild_id}/scheduled-events/{event_id}"
     response = requests.delete(url, headers=HEADERS)
+    if response.status_code == 404:
+        # Event does not exist, nothing to delete
+        return False
     response.raise_for_status()
     return response.status_code == 204  # Discord returns 204 No Content on successful delete
