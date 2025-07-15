@@ -3,7 +3,9 @@ import requests
 from datetime import datetime
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
-BOT_TOKEN = os.environ.get("DISCORD_TOKEN")
+
+env = os.environ.get("ENVIRONMENT", "alpha")
+BOT_TOKEN = os.environ.get("ALPHA_DISCORD_TOKEN") if env == "alpha" else os.environ.get("PROD_DISCORD_TOKEN")
 
 HEADERS = {
     "Authorization": f"Bot {BOT_TOKEN}",
