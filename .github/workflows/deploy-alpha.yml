@@ -1,4 +1,4 @@
-name: Deploy Production bot via CDK
+name: Deploy Alpha bot via CDK
 
 on:
   pull_request:
@@ -59,7 +59,7 @@ jobs:
           pip install -r ./src/requirements.txt
 
       - name: Run discord-commands.py
-        run: python commands/register_commands.py prod
+        run: python commands/register_commands.py alpha
         env: 
           ALPHA_DISCORD_TOKEN: ${{ secrets.ALPHA_DISCORD_TOKEN }}
           ALPHA_DISCORD_APPLICATION_ID: ${{ secrets.ALPHA_DISCORD_APPLICATION_ID }}
