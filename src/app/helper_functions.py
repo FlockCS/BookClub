@@ -1,7 +1,7 @@
 from flask import jsonify
 from utils.utils import is_valid_future_date
 from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
-from utils.discord_actions import create_guild_event, update_guild_event
+from utils.discord_actions import create_guild_event, update_guild_event, delete_guild_event
 import pytz
 from datetime import time as dt_time
 eastern = pytz.timezone('America/New_York')
@@ -140,11 +140,11 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                 event_updated = True
             except Exception as e:
                 print(f"Failed to update Discord event: {e}")
-        response = update_discussion_date_current_book(guild_id, discussion_date, discord_event_id=discord_event_id if event_updated else None)
+        response = update_discussion_date_current_book(guild_id, discussion_date, curr_pages, discord_event_id=discord_event_id if event_updated else None)
         return jsonify({
             "type": 4,
             "data": {
-                "content": f"✅ {response.get('title', 'Unknown Title')} has been rescheduled from {response.get('discussion_date', 'TBD')} to {discussion_date}!"
+                "content": f"✅ {response.get('title', 'Unknown Title')} has been rescheduled from {response.get('discussion_date', 'TBD')} to {discussion_date} and from {response.get('set_page_or_chapter', 'TBD')} to {curr_pages}!"
             }
         })
     
@@ -239,8 +239,9 @@ def handle_book_delete(guild_id, user_id, role_ids, confirmation):
         })
     # If confirmation is True, proceed with deletion
     if confirmation:
-        response = delete_current_book(guild_id)
-        if not response:
+        responseDeleteDDB = delete_current_book(guild_id)
+        responseDeleteEvent = delete_guild_event(guild_id, responseDeleteDDB.get("discord_event_id", ""))  # Delete Discord event if it exists
+        if not responseDeleteDDB:
             return jsonify({
                 "type": 4,
                 "data": {
@@ -251,7 +252,7 @@ def handle_book_delete(guild_id, user_id, role_ids, confirmation):
         return jsonify({
             "type": 4,
             "data": {
-                "content": f"✅ Book {response['title']} by {response['authors']} has been removed from current reading!",
+                "content": f"✅ Book {responseDeleteDDB['title']} by {responseDeleteDDB['authors']} has been removed from current reading!",
             }
         })
     else:

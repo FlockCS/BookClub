@@ -1,4 +1,4 @@
-name: Deploy Production bot via CDK
+name: Deploy Alpha bot via CDK
 
 on:
   pull_request:
@@ -59,11 +59,11 @@ jobs:
           pip install -r ./src/requirements.txt
 
       - name: Run discord-commands.py
-        run: python commands/register_commands.py prod
+        run: python commands/register_commands.py alpha
         env: 
-          PROD_DISCORD_TOKEN: ${{ secrets.ALPHA_DISCORD_TOKEN }}
-          PROD_DISCORD_APPLICATION_ID: ${{ secrets.ALPHA_DISCORD_APPLICATION_ID }}
-          PROD_DISCORD_PUBLIC_KEY: ${{ secrets.ALPHA_DISCORD_PUBLIC_KEY }}
+          ALPHA_DISCORD_TOKEN: ${{ secrets.ALPHA_DISCORD_TOKEN }}
+          ALPHA_DISCORD_APPLICATION_ID: ${{ secrets.ALPHA_DISCORD_APPLICATION_ID }}
+          ALPHA_DISCORD_PUBLIC_KEY: ${{ secrets.ALPHA_DISCORD_PUBLIC_KEY }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -76,5 +76,6 @@ jobs:
         run: cdk deploy AlphaBookClubBotStack --require-approval never
         env:
           ENVIRONMENT: alpha
+          ALPHA_DISCORD_TOKEN: ${{ secrets.ALPHA_DISCORD_TOKEN }}
           CDK_DEFAULT_ACCOUNT: ${{ secrets.AWS_ACCOUNT }}
           CDK_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
