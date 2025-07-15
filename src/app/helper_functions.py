@@ -140,11 +140,11 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                 event_updated = True
             except Exception as e:
                 print(f"Failed to update Discord event: {e}")
-        response = update_discussion_date_current_book(guild_id, discussion_date, discord_event_id=discord_event_id if event_updated else None)
+        response = update_discussion_date_current_book(guild_id, discussion_date, curr_pages, discord_event_id=discord_event_id if event_updated else None)
         return jsonify({
             "type": 4,
             "data": {
-                "content": f"✅ {response.get('title', 'Unknown Title')} has been rescheduled from {response.get('discussion_date', 'TBD')} to {discussion_date}!"
+                "content": f"✅ {response.get('title', 'Unknown Title')} has been rescheduled from {response.get('discussion_date', 'TBD')} to {discussion_date} and from {response.get('set_page_or_chapter', 'TBD')} to {curr_pages}!"
             }
         })
     

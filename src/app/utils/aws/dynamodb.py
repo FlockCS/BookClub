@@ -86,14 +86,14 @@ def delete_current_book(guild_id: str) -> dict:
 
 
 # update the schedule of the book
-def update_discussion_date_current_book(guild_id: str, discussion_date: datetime, discord_event_id: str = None) -> None:
-    if not guild_id or not discussion_date:
-        raise Exception("Both guild_id and new discussion_date are required.")
+def update_discussion_date_current_book(guild_id: str, discussion_date: datetime, pages_or_chapters: str, discord_event_id: str = None) -> None:
+    if not guild_id or not discussion_date or not pages_or_chapters:
+        raise Exception("Guild_ID, a new discussion date, and pages or chapters are required.")
 
     try:
         update_expr = "SET #d = :new_date, #t = :updated_at"
-        expr_attr_names = {"#d": "discussion_date", "#t": "timestamp"}
-        expr_attr_values = {":new_date": discussion_date, ":updated_at": datetime.now(timezone.utc).isoformat()}
+        expr_attr_names = {"#d": "discussion_date", "#t": "timestamp", "#p": "set_page_or_chapter"}
+        expr_attr_values = {":new_date": discussion_date, ":updated_at": datetime.now(timezone.utc).isoformat(), ":pages": pages_or_chapters}
         if discord_event_id:
             update_expr += ", #e = :event_id"
             expr_attr_names["#e"] = "discord_event_id"
