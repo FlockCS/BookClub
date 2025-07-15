@@ -240,7 +240,7 @@ def handle_book_delete(guild_id, user_id, role_ids, confirmation):
     # If confirmation is True, proceed with deletion
     if confirmation:
         responseDeleteDDB = delete_current_book(guild_id)
-        responseDeleteEvent = delete_guild_event(guild_id, response.get("discord_event_id", ""))  # Delete Discord event if it exists
+        responseDeleteEvent = delete_guild_event(guild_id, responseDeleteDDB.get("discord_event_id", ""))  # Delete Discord event if it exists
         if not responseDeleteDDB:
             return jsonify({
                 "type": 4,
