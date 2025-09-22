@@ -3,7 +3,7 @@ from utils.utils import is_valid_future_date
 from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
 from utils.discord_actions import create_guild_event, update_guild_event, delete_guild_event
 import pytz
-from datetime import time as dt_time
+from datetime import datetime, time as dt_time
 eastern = pytz.timezone('America/New_York')
 
 
@@ -45,6 +45,21 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
         "title": f"{prefix}{display_title}",
         "components": [
             {
+                "type": 1,  # Another action row
+                "components": [
+                    {
+                        "type": 4,  # Text input
+                        "custom_id": "pages_or_chapters",
+                        "style": 1,
+                        "label": "Pages or Chapters to Read",
+                        "min_length": 1,
+                        "max_length": 100,
+                        "placeholder": "e.g. Chapters 1-3 or Pages 1-50",
+                        "required": True
+                    }
+                ]
+            },
+            {
                 "type": 1,  # Action row
                 "components": [
                     {
@@ -60,20 +75,21 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
                 ]
             },
             {
-                "type": 1,  # Another action row
+                "type": 1,  # Action row
                 "components": [
                     {
                         "type": 4,  # Text input
-                        "custom_id": "pages_or_chapters",
+                        "custom_id": "discussion_time",
                         "style": 1,
-                        "label": "Pages or Chapters to Read",
-                        "min_length": 1,
-                        "max_length": 100,
-                        "placeholder": "e.g. Chapters 1-3 or Pages 1-50",
+                        "label": f"{'New Discussion Time | Previous: ' if reschedule else 'Discussion Time | '}{curr_book.get('discussion_time', 'TBD') if reschedule else '(HH:MM AM/PM)'}",
+                        "min_length": 8,
+                        "max_length": 8,
+                        "placeholder": "07:00 PM",
                         "required": True
                     }
                 ]
-            }
+            },
+
         ]
     }
 
@@ -114,7 +130,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         return desc
 
     # Convert discussion_date to EST and UTC for Discord event
-    from datetime import datetime
+
     dt = datetime.strptime(discussion_date, "%m-%d-%Y")
     # Default to 7:00 PM EST
     dt_est = eastern.localize(datetime.combine(dt.date(), dt_time(19, 0)))
