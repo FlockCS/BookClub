@@ -1,5 +1,6 @@
 from datetime import datetime, date
 import random
+import re
 
 GREETINGS = [
     "Hello there!",
@@ -27,3 +28,11 @@ def is_valid_future_date(discussion_date_str):
         return parsed_date > date.today()
     except ValueError:
         return False
+
+def is_valid_time_string(time_str):
+    """
+    Validates time in HH:MM AM/PM format.
+    Returns True if valid, False otherwise.
+    """
+    pattern = r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
+    return bool(re.match(pattern, time_str))

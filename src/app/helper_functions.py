@@ -1,5 +1,5 @@
 from flask import jsonify
-from utils.utils import is_valid_future_date
+from utils.utils import is_valid_future_date, is_valid_time_string
 from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
 from utils.discord_actions import create_guild_event, update_guild_event, delete_guild_event
 import pytz
@@ -102,6 +102,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     user_id = raw_request["member"]["user"]["id"]
     guild_id = raw_request.get("guild_id")
     discussion_date = None
+    discussion_time = None
     pages_or_chapters = None
 
     # Extract date and reading plan from modal inputs
@@ -111,14 +112,26 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                 discussion_date = component["value"]
             elif component["custom_id"] == "pages_or_chapters":
                 pages_or_chapters = component["value"]
+            elif component["custom_id"] == "discussion_time":
+                discussion_time = component["value"]
 
-    # Validate discussion date for both new selections and rescheduling
+    print(f"Scheduling book for guild {guild_id} on {discussion_date} at {discussion_time} with reading {pages_or_chapters}")
+
+    # Collect validation errors
+    errors = []
     if not is_valid_future_date(discussion_date):
+        print(f"Invalid discussion date: {discussion_date}")
+        errors.append("❌ Please enter a valid future date in MM-DD-YYYY format.")
+    if not is_valid_time_string(discussion_time):
+        print(f"Invalid discussion time: {discussion_time}")
+        errors.append("❌ Please enter a valid time in HH:MM AM/PM format (e.g., 07:00 PM).")
+
+    if errors:
         return jsonify({
             "type": 4,
             "data": {
-                "content": "❌ Please enter a valid future date in MM-DD-YYYY format.",
-                "flags": 64  # Ephemeral message
+                "content": "\n".join(errors),
+                "flags": 64
             }
         })
 
@@ -130,11 +143,9 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         return desc
 
     # Convert discussion_date to EST and UTC for Discord event
-
-    dt = datetime.strptime(discussion_date, "%m-%d-%Y")
-    # Default to 7:00 PM EST
-    dt_est = eastern.localize(datetime.combine(dt.date(), dt_time(19, 0)))
-    est_time_str = dt_est.strftime("%m-%d-%Y %I:%M %p EST")
+    # Combine date and time, convert to EST and UTC ISO8601
+    dt = datetime.strptime(f"{discussion_date} {discussion_time}", "%m-%d-%Y %I:%M %p")
+    dt_est = eastern.localize(dt)
     dt_utc = dt_est.astimezone(pytz.utc)
     start_time_iso = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
