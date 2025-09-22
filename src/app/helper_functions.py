@@ -1,9 +1,9 @@
 from flask import jsonify
-from utils.utils import is_valid_future_date
+from utils.utils import is_valid_future_date, is_valid_time_string
 from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
 from utils.discord_actions import create_guild_event, update_guild_event, delete_guild_event
 import pytz
-from datetime import time as dt_time
+from datetime import datetime, time as dt_time
 eastern = pytz.timezone('America/New_York')
 
 
@@ -45,6 +45,21 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
         "title": f"{prefix}{display_title}",
         "components": [
             {
+                "type": 1,  # Another action row
+                "components": [
+                    {
+                        "type": 4,  # Text input
+                        "custom_id": "pages_or_chapters",
+                        "style": 1,
+                        "label": "Pages or Chapters to Read",
+                        "min_length": 1,
+                        "max_length": 100,
+                        "placeholder": "e.g. Chapters 1-3 or Pages 1-50",
+                        "required": True
+                    }
+                ]
+            },
+            {
                 "type": 1,  # Action row
                 "components": [
                     {
@@ -60,20 +75,22 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
                 ]
             },
             {
-                "type": 1,  # Another action row
+                "type": 1,  # Action row
                 "components": [
                     {
                         "type": 4,  # Text input
-                        "custom_id": "pages_or_chapters",
+                        "custom_id": "discussion_time",
                         "style": 1,
-                        "label": "Pages or Chapters to Read",
-                        "min_length": 1,
-                        "max_length": 100,
-                        "placeholder": "e.g. Chapters 1-3 or Pages 1-50",
+                        "label": f"{'New Discussion Time | Previous: ' if reschedule else 'Discussion Time | '}{curr_book.get('discussion_time', 'TBD') if reschedule else '(HH:MM AM/PM)'}",
+                        "min_length": 8,
+                        "max_length": 8,
+                        "value": curr_book.get('discussion_time'),
+                        "placeholder": '10:28 PM',
                         "required": True
                     }
                 ]
-            }
+            },
+
         ]
     }
 
@@ -86,6 +103,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     user_id = raw_request["member"]["user"]["id"]
     guild_id = raw_request.get("guild_id")
     discussion_date = None
+    discussion_time = None
     pages_or_chapters = None
 
     # Extract date and reading plan from modal inputs
@@ -95,14 +113,24 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                 discussion_date = component["value"]
             elif component["custom_id"] == "pages_or_chapters":
                 pages_or_chapters = component["value"]
+            elif component["custom_id"] == "discussion_time":
+                discussion_time = component["value"]
 
-    # Validate discussion date for both new selections and rescheduling
+    print(f"Scheduling book for guild {guild_id} on {discussion_date} at {discussion_time} with reading {pages_or_chapters}")
+
+    # Collect validation errors
+    errors = []
     if not is_valid_future_date(discussion_date):
+        errors.append("❌ Please enter a valid future date in MM-DD-YYYY format.")
+    if not is_valid_time_string(discussion_time):
+        errors.append("❌ Please enter a valid time in HH:MM AM/PM format (e.g., 07:00 PM).")
+
+    if errors:
         return jsonify({
             "type": 4,
             "data": {
-                "content": "❌ Please enter a valid future date in MM-DD-YYYY format.",
-                "flags": 64  # Ephemeral message
+                "content": "\n".join(errors),
+                "flags": 64
             }
         })
 
@@ -114,11 +142,9 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         return desc
 
     # Convert discussion_date to EST and UTC for Discord event
-    from datetime import datetime
-    dt = datetime.strptime(discussion_date, "%m-%d-%Y")
-    # Default to 7:00 PM EST
-    dt_est = eastern.localize(datetime.combine(dt.date(), dt_time(19, 0)))
-    est_time_str = dt_est.strftime("%m-%d-%Y %I:%M %p EST")
+    # Combine date and time, convert to EST and UTC ISO8601
+    dt = datetime.strptime(f"{discussion_date} {discussion_time}", "%m-%d-%Y %I:%M %p")
+    dt_est = eastern.localize(dt)
     dt_utc = dt_est.astimezone(pytz.utc)
     start_time_iso = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -140,7 +166,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                 event_updated = True
             except Exception as e:
                 print(f"Failed to update Discord event: {e}")
-        response = update_discussion_date_current_book(guild_id, discussion_date, curr_pages, discord_event_id=discord_event_id if event_updated else None)
+        response = update_discussion_date_current_book(guild_id, discussion_date, discussion_time, curr_pages, discord_event_id=discord_event_id if event_updated else None)
         return jsonify({
             "type": 4,
             "data": {
@@ -175,7 +201,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         print(f"Failed to create Discord event: {e}")
 
     # Save to DynamoDB (with event ID if available)
-    put_book(guild_id, user_id, selected_book, discussion_date, pages_or_chapters, discord_event_id=event_id)
+    put_book(guild_id, user_id, selected_book, discussion_date, discussion_time, pages_or_chapters, discord_event_id=event_id)
 
     # Clean up pending selection
     pending_selections[guild_id].pop(user_id, None)

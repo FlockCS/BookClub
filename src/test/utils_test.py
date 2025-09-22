@@ -13,6 +13,7 @@ def test_put_book_into_table_success(mock_dynamodb, mock_env_vars):
         user_id='test_user',
         selected_book={'info' : {}},
         discussion_date=datetime.now(),
+        discussion_time='10:28 PM',
         pages_or_chapters='Pages 1-10'
     )
     assert not res
@@ -27,6 +28,7 @@ def test_put_book_into_table_fail_missing_data(mock_dynamodb, mock_env_vars):
             user_id='test_user',
             selected_book={'info' : {}},
             discussion_date=datetime.now(),
+            discussion_time='10:28 PM',
             pages_or_chapters=''
         )
 
@@ -44,6 +46,7 @@ def test_put_book_into_table_failed_put(mock_book_table, mock_dynamodb, mock_env
             user_id='test_user',
             selected_book=selected_book,
             discussion_date=datetime.now(),
+            discussion_time='07:00 PM',
             pages_or_chapters='Pages 1-10'
         )
 

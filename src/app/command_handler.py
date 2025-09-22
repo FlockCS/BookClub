@@ -102,6 +102,7 @@ def command_handler(raw_request):
         authors          = book.get("authors", "Unknown Author")
         isbn             = book.get("isbn", "N/A")
         discussion_date  = book.get("discussion_date", "TBD")
+        discussion_time  = book.get("discussion_time", "TBD")
         pages            = book.get("set_page_or_chapter", "—")
 
         # Optional: if you stored a cover URL in DynamoDB
@@ -110,7 +111,8 @@ def command_handler(raw_request):
             "title": title,
             "description": f"Author: {authors}\n"
                         f"ISBN: {isbn}\n"
-                        f"Discussion: {discussion_date}\n"
+                        f"Discussion Date: {discussion_date}\n"
+                        f"Discussion Time: {discussion_time}\n"
                         f"Pages / chapter: {pages}",
         }
         if thumbnail_url:

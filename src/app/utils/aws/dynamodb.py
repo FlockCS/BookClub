@@ -22,12 +22,13 @@ def put_book(
         guild_id: str, 
         user_id: str, 
         selected_book: dict[str, dict], 
-        discussion_date: datetime, 
+        discussion_date: datetime,
+        discussion_time: str,
         pages_or_chapters,
         discord_event_id: str = None
     ) -> None:
 
-    if not all([guild_id, user_id, selected_book, discussion_date, pages_or_chapters]):
+    if not all([guild_id, user_id, selected_book, discussion_date, discussion_time, pages_or_chapters]):
         msg = f"Book information missing. Please enter valid book info."
         raise Exception(msg)
 
@@ -47,6 +48,7 @@ def put_book(
         item = {
             "guild_id": guild_id,  # Partition key (table schema dependent)
             "discussion_date": discussion_date,
+            "discussion_time": discussion_time,
             "title": title,
             "authors": authors,
             "isbn": isbn,
@@ -86,21 +88,23 @@ def delete_current_book(guild_id: str) -> dict:
 
 
 # update the schedule of the book
-def update_discussion_date_current_book(guild_id: str, discussion_date: str, pages_or_chapters: str, discord_event_id: str = None) -> dict:
-    if not guild_id or not discussion_date or not pages_or_chapters:
-        raise Exception("Guild_ID, a new discussion date, and pages or chapters are required.")
+def update_discussion_date_current_book(guild_id: str, discussion_date: str, discussion_time: str, pages_or_chapters: str, discord_event_id: str = None) -> dict:
+    if not guild_id or not discussion_date or not discussion_time or not pages_or_chapters:
+        raise Exception("Guild_ID, a new discussion date, discussion time, and pages or chapters are required.")
 
     try:
-        update_expr = "SET #d = :new_date, #t = :updated_at, #p = :pages"
+        update_expr = "SET #d = :new_date, #t = :updated_at, #p = :pages, #dt = :discussion_time"
         expr_attr_names = {
             "#d": "discussion_date",
             "#t": "timestamp",
-            "#p": "set_page_or_chapter"
+            "#p": "set_page_or_chapter",
+            "#dt": "discussion_time"
         }
         expr_attr_values = {
             ":new_date": discussion_date,
             ":updated_at": datetime.now(timezone.utc).isoformat(),
-            ":pages": pages_or_chapters
+            ":pages": pages_or_chapters,
+            ":discussion_time": discussion_time
         }
         if discord_event_id:
             update_expr += ", #e = :event_id"
