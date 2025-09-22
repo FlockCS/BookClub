@@ -84,7 +84,8 @@ def handle_book_select(raw_request, pending_selections, reschedule: bool):
                         "label": f"{'New Discussion Time | Previous: ' if reschedule else 'Discussion Time | '}{curr_book.get('discussion_time', 'TBD') if reschedule else '(HH:MM AM/PM)'}",
                         "min_length": 8,
                         "max_length": 8,
-                        "placeholder": curr_book.get('discussion_time', '10:28 PM'),
+                        "value": curr_book.get('discussion_time'),
+                        "placeholder": '10:28 PM',
                         "required": True
                     }
                 ]
