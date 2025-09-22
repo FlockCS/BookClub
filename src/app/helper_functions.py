@@ -149,10 +149,11 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     start_time_iso = dt_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     if reschedule:
-        # Get current book to fetch event ID
         curr_book = get_current_book(guild_id)
         discord_event_id = curr_book.get("discord_event_id")
         event_updated = False
+        new_event_id = None
+
         if discord_event_id:
             try:
                 curr_title = curr_book.get('title', 'Book')
@@ -166,7 +167,30 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                 event_updated = True
             except Exception as e:
                 print(f"Failed to update Discord event: {e}")
-        response = update_discussion_date_current_book(guild_id, discussion_date, discussion_time, curr_pages, discord_event_id=discord_event_id if event_updated else None)
+                # If the error is a 404 (event not found), create a new event
+                if "404" in str(e):
+                    try:
+                        event_desc = make_event_description(curr_title, curr_pages)
+                        event = create_guild_event(
+                            guild_id,
+                            name=f"Book Club: {curr_title}",
+                            description=event_desc,
+                            start_time=start_time_iso
+                        )
+                        new_event_id = event.get("id")
+                        print(f"Created new Discord event with ID: {new_event_id}")
+                    except Exception as ce:
+                        print(f"Failed to create new Discord event: {ce}")
+
+        # Update DynamoDB with the new event ID if created, otherwise use the old one if updated
+        final_event_id = new_event_id if new_event_id else (discord_event_id if event_updated else None)
+        response = update_discussion_date_current_book(
+            guild_id,
+            discussion_date,
+            discussion_time,
+            curr_pages,
+            discord_event_id=final_event_id
+        )
         return jsonify({
             "type": 4,
             "data": {
