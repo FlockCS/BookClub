@@ -120,10 +120,8 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     # Collect validation errors
     errors = []
     if not is_valid_future_date(discussion_date):
-        print(f"Invalid discussion date: {discussion_date}")
         errors.append("❌ Please enter a valid future date in MM-DD-YYYY format.")
     if not is_valid_time_string(discussion_time):
-        print(f"Invalid discussion time: {discussion_time}")
         errors.append("❌ Please enter a valid time in HH:MM AM/PM format (e.g., 07:00 PM).")
 
     if errors:
@@ -167,7 +165,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                 event_updated = True
             except Exception as e:
                 print(f"Failed to update Discord event: {e}")
-        response = update_discussion_date_current_book(guild_id, discussion_date, curr_pages, discord_event_id=discord_event_id if event_updated else None)
+        response = update_discussion_date_current_book(guild_id, discussion_date, discussion_time, curr_pages, discord_event_id=discord_event_id if event_updated else None)
         return jsonify({
             "type": 4,
             "data": {
@@ -202,7 +200,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         print(f"Failed to create Discord event: {e}")
 
     # Save to DynamoDB (with event ID if available)
-    put_book(guild_id, user_id, selected_book, discussion_date, pages_or_chapters, discord_event_id=event_id)
+    put_book(guild_id, user_id, selected_book, discussion_date, discussion_time, pages_or_chapters, discord_event_id=event_id)
 
     # Clean up pending selection
     pending_selections[guild_id].pop(user_id, None)
