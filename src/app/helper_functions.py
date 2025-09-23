@@ -1,7 +1,7 @@
 from flask import jsonify
 from utils.utils import is_valid_future_date, is_valid_time_string
 from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
-from utils.discord_actions import create_guild_event, update_guild_event, delete_guild_event
+from utils.discord_actions import create_discussion_thread, create_guild_event, update_guild_event, delete_guild_event
 import pytz
 from datetime import datetime, time as dt_time
 eastern = pytz.timezone('America/New_York')
@@ -173,7 +173,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
                         event_desc = make_event_description(curr_title, curr_pages)
                         event = create_guild_event(
                             guild_id,
-                            name=f"Book Club: {curr_title}",
+                            name=f"Book Club: {curr_title}", 
                             description=event_desc,
                             start_time=start_time_iso
                         )
@@ -191,6 +191,18 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
             curr_pages,
             discord_event_id=final_event_id
         )
+        try:
+            thread = create_discussion_thread(
+                guild_id,
+                thread_name=f"Discussion: {selected_book['volumeInfo']['title']} ({discussion_date})",
+                book_title=curr_book.get('title', 'Book'),
+                section=curr_pages
+            )
+            thread_id = thread["id"]
+            # Optionally, store thread_id in DynamoDB
+        except Exception as e:
+            print(f"Failed to create discussion thread: {e}")
+
         return jsonify({
             "type": 4,
             "data": {

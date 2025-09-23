@@ -72,3 +72,54 @@ def delete_guild_event(guild_id, event_id):
         return False
     response.raise_for_status()
     return response.status_code == 204  # Discord returns 204 No Content on successful delete
+
+def create_discussion_thread(guild_id, thread_name, book_title, section):
+    """
+    Create a thread in the specified channel for book discussion.
+    The thread name and first message follow a custom format.
+    """
+    channel_id = get_megathreads_channel_id(guild_id)
+
+    url = f"{DISCORD_API_BASE}/channels/{channel_id}/threads"
+    thread_name = f"Week {1} - {book_title}"
+    payload = {
+        "name": thread_name,
+        "type": 11  # Public thread
+        # No auto_archive_duration field
+    }
+    headers = {
+        "Authorization": f"Bot {BOT_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+    thread = response.json()
+
+    # Send the first message in the thread with the custom description
+    message_content = (
+        f"Week {1}\n"
+        f"Book: {book_title}\n"
+        f"Section: {section}\n"
+        "Happy Reading 📖"
+    )
+    thread_id = thread["id"]
+    message_url = f"{DISCORD_API_BASE}/channels/{thread_id}/messages"
+    message_payload = {"content": message_content}
+    message_response = requests.post(message_url, headers=headers, json=message_payload)
+    message_response.raise_for_status()
+    return thread
+
+def get_megathreads_channel_id(guild_id):
+    """
+    Fetches the ID of the 'megathreads' text channel for the given guild.
+    Returns None if not found.
+    """
+    url = f"{DISCORD_API_BASE}/guilds/{guild_id}/channels"
+    response = requests.get(url, headers=HEADERS)
+    response.raise_for_status()
+    channels = response.json()
+    for channel in channels:
+        # type 0 = text channel
+        if channel["type"] == 0 and channel["name"].lower() == "megathreads":
+            return channel["id"]
+    return None
