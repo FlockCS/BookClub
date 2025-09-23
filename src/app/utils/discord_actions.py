@@ -105,9 +105,7 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
 
     # Send the first message in the thread with the custom description
     message_content = (
-        f"**{formatted_date}**\n"
-        f"Book: {book_title}\n"
-        f"Section: {section}\n"
+        f"**Section: {section}**\n"
         "Happy Reading 📖"
     )
     thread_id = thread["id"]
