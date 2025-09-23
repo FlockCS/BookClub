@@ -87,7 +87,7 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     formatted_date = f"{weekday}, {month} {day} {year}"
 
     url = f"{DISCORD_API_BASE}/channels/{channel_id}/threads"
-    thread_name = f"{formatted_date - book_title}"
+    thread_name = f"{formatted_date} - {book_title}"
     payload = {
         "name": thread_name,
         "type": 11  # Public thread
