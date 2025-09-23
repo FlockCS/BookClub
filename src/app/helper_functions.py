@@ -194,7 +194,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         try:
             thread = create_discussion_thread(
                 guild_id,
-                thread_name=f"Discussion: {selected_book['volumeInfo']['title']} ({discussion_date})",
+                thread_name=f"Discussion: {make_event_description(curr_title, curr_pages)} ({discussion_date})",
                 book_title=curr_book.get('title', 'Book'),
                 section=curr_pages
             )
