@@ -79,9 +79,15 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     The thread name and first message follow a custom format.
     """
     channel_id = get_megathreads_channel_id(guild_id)
+    # Format: Thursday, September 19th 2025
+    weekday = dt.strftime('%A')
+    month = dt.strftime('%B')
+    day = get_ordinal(dt.day)
+    year = dt.year
+    formatted_date = f"{weekday}, {month} {day} {year}"
 
     url = f"{DISCORD_API_BASE}/channels/{channel_id}/threads"
-    thread_name = f"Week {1} - {book_title}"
+    thread_name = f"{formatted_date - book_title}"
     payload = {
         "name": thread_name,
         "type": 11  # Public thread
@@ -95,13 +101,8 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     response.raise_for_status()
     thread = response.json()
 
-    # Format: Thursday, September 19th 2025
-    weekday = dt.strftime('%A')
-    month = dt.strftime('%B')
-    day = get_ordinal(dt.day)
-    year = dt.year
-    formatted_date = f"{weekday}, {month} {day} {year}"
-    
+
+
     # Send the first message in the thread with the custom description
     message_content = (
         f"**{formatted_date}**\n"
