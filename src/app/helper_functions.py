@@ -244,6 +244,19 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     pending_selections[guild_id].pop(user_id, None)
     if not pending_selections[guild_id]:  # Optional cleanup
         del pending_selections[guild_id]
+    
+    try:
+        thread = create_discussion_thread(
+            guild_id,
+            thread_name=f"Discussion: {make_event_description(selected_book['volumeInfo']['title'], pages_or_chapters)} ({discussion_date})",
+            book_title=selected_book['volumeInfo']['title'],
+            dt=dt_est,
+            section=curr_pages
+        )
+        thread_id = thread["id"]
+        # Optionally, store thread_id in DynamoDB
+    except Exception as e:
+        print(f"Failed to create discussion thread: {e}")
 
     return jsonify({
         "type": 4,
