@@ -73,7 +73,7 @@ def delete_guild_event(guild_id, event_id):
     response.raise_for_status()
     return response.status_code == 204  # Discord returns 204 No Content on successful delete
 
-def create_discussion_thread(guild_id, thread_name, book_title, section):
+def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     """
     Create a thread in the specified channel for book discussion.
     The thread name and first message follow a custom format.
@@ -95,9 +95,16 @@ def create_discussion_thread(guild_id, thread_name, book_title, section):
     response.raise_for_status()
     thread = response.json()
 
+    # Format: Thursday, September 19th 2025
+    weekday = dt.strftime('%A')
+    month = dt.strftime('%B')
+    day = get_ordinal(dt.day)
+    year = dt.year
+    formatted_date = f"{weekday}, {month} {day} {year}"
+    
     # Send the first message in the thread with the custom description
     message_content = (
-        f"Week {1}\n"
+        f"**{formatted_date}**\n"
         f"Book: {book_title}\n"
         f"Section: {section}\n"
         "Happy Reading 📖"
@@ -123,3 +130,11 @@ def get_megathreads_channel_id(guild_id):
         if channel["type"] == 0 and channel["name"].lower() == "megathreads":
             return channel["id"]
     return None
+
+def get_ordinal(n):
+    if 10 <= n % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')
+    return str(n) + suffix
+
