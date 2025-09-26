@@ -9,6 +9,7 @@ headers = {
 
 def query(payload):
     response = requests.post(API_URL, headers=headers, json=payload)
-    print("LLM response:", response.json())
-    return response["choices"][0]["message"]["content"]
+    data = response.json()
+    print("LLM response:", data)
+    return data["choices"][0]["message"]["content"]
 

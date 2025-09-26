@@ -25,7 +25,7 @@ def make_hello_payload():
                 "content": (
                     "You are a Discord bot. Reply with a short, friendly hello message "
                     "that you would send to a user in a Discord server. "
-                    "Keep it casual and include a fun emoji. "
+                    "Keep it casual and include a fun emoji. Don't put a '\n' at the end"
                     f"Example greeting: {example_greeting} {example_emoji}"
                 ),
             }
