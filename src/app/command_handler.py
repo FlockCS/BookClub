@@ -25,8 +25,8 @@ def command_handler(raw_request):
      # Hello Command
     if command_name == "hello":
         res = hf_query(make_hello_payload())  # Call to HF API (not used in response)
-        message_content = f"{res} <@{user_id}>!"
-
+        clean_response = res.rstrip('\n')
+        message_content = f"{clean_response} <@{user_id}>!"
 
     elif command_name == "echo":
         original_message = data["options"][0]["value"]

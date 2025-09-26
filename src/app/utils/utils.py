@@ -16,8 +16,12 @@ EMOJIS = ["👋", "😊", "🙌", "🌟", "🤗", "😄", "✨", "😎", "😁"]
 
 
 def make_hello_payload():
-    example_greeting = random.choice(GREETINGS)
-    example_emoji = random.choice(EMOJIS)
+    example_greetings = [
+        f"{random.choice(GREETINGS)} {random.choice(EMOJIS)}",
+        f"{random.choice(GREETINGS)} {random.choice(EMOJIS)}",
+        f"{random.choice(GREETINGS)} {random.choice(EMOJIS)}",
+    ]
+    examples = "\n".join(example_greetings)
     return {
         "messages": [
             {
@@ -25,8 +29,10 @@ def make_hello_payload():
                 "content": (
                     "You are a Discord bot. Reply with a short, friendly hello message "
                     "that you would send to a user in a Discord server. "
-                    "Keep it casual and include a fun emoji. Don't put a '\n' at the end"
-                    f"Example greeting: {example_greeting} {example_emoji}"
+                    "Each time, use a different greeting and a fun emoji that represents hello. "
+                    "Here are some examples:\n"
+                    f"{examples}\n"
+                    "Don't put a '\\n' at the end."
                 ),
             }
         ],
