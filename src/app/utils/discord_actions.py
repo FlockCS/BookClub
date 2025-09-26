@@ -140,7 +140,7 @@ def get_channel_id_by_name(guild_id, channel_name):
     response.raise_for_status()
     channels = response.json()
     for channel in channels:
-        if channel["type"] == 0 and channel["name"].lower() == channel_name.lower():
+        if channel["type"] in [0, 5] and channel["name"].lower() == channel_name.lower():
             return channel["id"]
     return None
 
