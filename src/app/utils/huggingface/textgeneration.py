@@ -10,5 +10,5 @@ headers = {
 def query(payload):
     response = requests.post(API_URL, headers=headers, json=payload)
     print("LLM response:", response.json())
-    return response["choices"][0]["message"]
+    return response["choices"][0]["message"]["content"]
 

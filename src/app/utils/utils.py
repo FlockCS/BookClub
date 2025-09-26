@@ -15,20 +15,23 @@ GREETINGS = [
 EMOJIS = ["👋", "😊", "🙌", "🌟", "🤗", "😄", "✨", "😎", "😁"]
 
 
-HELLO_PAYLOAD = {
-    "messages": [
-        {
-            "role": "user",
-            "content": (
-                "You are a Discord bot. Reply with a short, friendly hello message "
-                "that you would send to a user in a Discord server. "
-                "Keep it casual and include a fun emoji. "
-                "Example greetings: Hello there! 👋, Hi! 😊, Good to see you! 🙌"
-            ),
-        }
-    ],
-    "model": "google/gemma-2-2b-it"
-}
+def make_hello_payload():
+    example_greeting = random.choice(GREETINGS)
+    example_emoji = random.choice(EMOJIS)
+    return {
+        "messages": [
+            {
+                "role": "user",
+                "content": (
+                    "You are a Discord bot. Reply with a short, friendly hello message "
+                    "that you would send to a user in a Discord server. "
+                    "Keep it casual and include a fun emoji. "
+                    f"Example greeting: {example_greeting} {example_emoji}"
+                ),
+            }
+        ],
+        "model": "google/gemma-2-2b-it",
+    }
 
 
 # Random Greeting generator for when a user uses /hello

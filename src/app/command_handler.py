@@ -2,7 +2,7 @@ from flask import json, jsonify
 import requests
 from config import GOOGLE_BOOKS_API_URL, IN_DEVELOPMENT, DICTIONARY_API_URL
 from utils.aws.dynamodb import get_current_book, cache_book_list, get_cached_book_list
-from utils.utils import random_greeting, HELLO_PAYLOAD
+from utils.utils import random_greeting, make_hello_payload
 from utils.huggingface.textgeneration import query as hf_query
 
 
@@ -24,7 +24,7 @@ def command_handler(raw_request):
 
      # Hello Command
     if command_name == "hello":
-        res = hf_query(HELLO_PAYLOAD)  # Call to HF API (not used in response)
+        res = hf_query(make_hello_payload())  # Call to HF API (not used in response)
         message_content = f"{res} <@{user_id}>!"
 
 
