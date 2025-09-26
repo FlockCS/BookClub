@@ -51,7 +51,6 @@ def make_announcement_payload(context, book, section, dt, time_str):
             f"The section will be {section}. "
             "If you can't make it, leave your thoughts in the #megathreads channel. "
             "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
-            "Keep the message concise and not overly enthusiastic."
         )
     elif context == "FOLLOW_UP":
         content = (
@@ -60,6 +59,8 @@ def make_announcement_payload(context, book, section, dt, time_str):
             "If you can't make it, leave your thoughts in the #megathreads channel. "
             "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
             "Keep the message concise and not overly enthusiastic."
+            "Great discussion this week! The chapters for next week are 21-30 and meeting is on September 25th @ 9:30 PM. I encourage folks who could not make it to leave comments just as we did in week 1 in the megathreads and try your best to join in next week! Meetings run about 30-45 minutes. Happy reading 📖"
+            "Use the above line as in example only, do not repeat it verbatim."
         )
     elif context == "FINISH":
         content = (
@@ -67,7 +68,6 @@ def make_announcement_payload(context, book, section, dt, time_str):
             f"Let everyone know we just finished reading {book}. "
             "Congratulate the group simply and encourage everyone to help pick the next book. "
             "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
-            "Keep the message concise and not overly enthusiastic."
         )
     else:
         raise ValueError("Unknown context for announcement payload.")
