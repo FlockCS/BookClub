@@ -255,7 +255,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
             thread_name=f"Discussion: {make_event_description(selected_book['volumeInfo']['title'], pages_or_chapters)} ({discussion_date})",
             book_title=selected_book['volumeInfo']['title'],
             dt=dt_est,
-            section=curr_pages
+            section=pages_or_chapters
         )
         # Optionally, store thread_id in DynamoDB
     except Exception as e:
