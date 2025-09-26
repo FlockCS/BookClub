@@ -14,7 +14,6 @@ GREETINGS = [
 ]
 EMOJIS = ["👋", "😊", "🙌", "🌟", "🤗", "😄", "✨", "😎", "😁"]
 
-
 def make_hello_payload():
     example_greetings = [
         f"{random.choice(GREETINGS)} {random.choice(EMOJIS)}",
@@ -39,6 +38,40 @@ def make_hello_payload():
         "model": "google/gemma-2-2b-it",
     }
 
+def make_announcement_payload(context, book, section, date_str, time_str):
+    if context == "FIRST":
+        content = (
+            f"You are a Discord bot. Write a relaxed, friendly Discord announcement for our book club. "
+            f"Let everyone know we have chosen to read {book} and meeting on {date_str} at {time_str}. The section will be {section}"
+            "Encourage those who can't make it to leave comments in the #megathreads channel. "
+            "End with a positive message about reading."
+        )
+    elif context == "FOLLOW_UP":
+        content = (
+            f"You are a Discord bot. Write a short, friendly follow-up announcement for our book club. "
+            f"Remind everyone we're reading {section} next week from {book} and meeting will be on {date_str} at {time_str}. "
+            "Encourage those who can't make it to leave comments in the #megathreads channel. "
+            "End with a positive message about reading."
+        )
+    elif context == "FINISH":
+        content = (
+            f"You are a Discord bot. Write a short, friendly announcement for our book club. "
+            f"Let everyone know we just finished reading {book} and like a small congratulations with a congratulatory emoji. "
+            "Encourage everyone to contribute to picking a new book."
+            "End with a positive message about reading."
+        )
+    else:
+        raise ValueError("Unknown context for announcement payload.")
+
+    return {
+        "messages": [
+            {
+                "role": "user",
+                "content": content,
+            }
+        ],
+        "model": "google/gemma-2-2b-it",
+    }
 
 # Random Greeting generator for when a user uses /hello
 def random_greeting():

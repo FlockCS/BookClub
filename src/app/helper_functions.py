@@ -1,7 +1,7 @@
 from flask import jsonify
-from utils.utils import is_valid_future_date, is_valid_time_string
+from utils.utils import is_valid_future_date, is_valid_time_string, make_announcement_payload
 from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
-from utils.discord_actions import create_discussion_thread, create_guild_event, update_guild_event, delete_guild_event
+from utils.discord_actions import create_event_announcement, create_discussion_thread, create_guild_event, update_guild_event, delete_guild_event
 import pytz
 from datetime import datetime, time as dt_time
 eastern = pytz.timezone('America/New_York')
@@ -192,17 +192,21 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
             discord_event_id=final_event_id
         )
         try:
-            thread = create_discussion_thread(
+            create_discussion_thread(
                 guild_id,
                 thread_name=f"Discussion: {make_event_description(curr_title, curr_pages)} ({discussion_date})",
                 book_title=curr_book.get('title', 'Book'),
                 dt=dt_est,
                 section=curr_pages
             )
-            thread_id = thread["id"]
-            # Optionally, store thread_id in DynamoDB
         except Exception as e:
             print(f"Failed to create discussion thread: {e}")
+
+        try:
+            payload = make_announcement_payload("FOLLOW_UP", curr_title, curr_pages, discussion_date, discussion_time)
+            create_event_announcement(guild_id, payload)
+        except Exception as e:
+            print(f"Failed to create announcement: {e}")
 
         return jsonify({
             "type": 4,
@@ -246,18 +250,22 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         del pending_selections[guild_id]
     
     try:
-        thread = create_discussion_thread(
+        create_discussion_thread(
             guild_id,
             thread_name=f"Discussion: {make_event_description(selected_book['volumeInfo']['title'], pages_or_chapters)} ({discussion_date})",
             book_title=selected_book['volumeInfo']['title'],
             dt=dt_est,
             section=curr_pages
         )
-        thread_id = thread["id"]
         # Optionally, store thread_id in DynamoDB
     except Exception as e:
         print(f"Failed to create discussion thread: {e}")
-
+    try:
+        payload = make_announcement_payload("FIRST", curr_title, curr_pages, discussion_date, discussion_time)
+        create_event_announcement(guild_id, payload)
+    except Exception as e:
+        print(f"Failed to create announcement: {e}")
+    
     return jsonify({
         "type": 4,
         "data": {
@@ -366,3 +374,4 @@ def handle_finish_book(guild_id, user_id, role_ids):
             "content": f"✅ Book {response['title']} by {response['authors']} has been finished! Congratulations! 🎉",
         }
     })
+

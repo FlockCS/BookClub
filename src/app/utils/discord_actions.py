@@ -1,6 +1,8 @@
 import os
 import requests
 from datetime import datetime
+from utils.utils import make_announcement_payload
+from utils.huggingface.textgeneration import query as hf_query
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
 
@@ -78,7 +80,7 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     Create a thread in the specified channel for book discussion.
     The thread name and first message follow a custom format.
     """
-    channel_id = get_megathreads_channel_id(guild_id)
+    channel_id = get_channel_id_by_name(guild_id, "megathreads")
     # Format: Thursday, September 19th 2025
     weekday = dt.strftime('%A')
     month = dt.strftime('%B')
@@ -113,11 +115,24 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     message_payload = {"content": message_content}
     message_response = requests.post(message_url, headers=headers, json=message_payload)
     message_response.raise_for_status()
-    return thread
 
-def get_megathreads_channel_id(guild_id):
+def create_event_announcement(guild_id, payload):
     """
-    Fetches the ID of the 'megathreads' text channel for the given guild.
+    Post an announcement in the 'announcements' channel about the upcoming book discussion.
+    """
+    channel_id = get_channel_id_by_name(guild_id, "announcements")
+    if channel_id is None:
+        raise ValueError("Announcements channel not found in guild")
+
+    url = f"{DISCORD_API_BASE}/channels/{channel_id}/messages"
+    hf_response = {"content": hf_query(payload)}
+
+    response = requests.post(url, headers=HEADERS, json=hf_response)
+    response.raise_for_status()
+
+def get_channel_id_by_name(guild_id, channel_name):
+    """
+    Fetches the ID of a text channel by name for the given guild.
     Returns None if not found.
     """
     url = f"{DISCORD_API_BASE}/guilds/{guild_id}/channels"
@@ -125,8 +140,7 @@ def get_megathreads_channel_id(guild_id):
     response.raise_for_status()
     channels = response.json()
     for channel in channels:
-        # type 0 = text channel
-        if channel["type"] == 0 and channel["name"].lower() == "megathreads":
+        if channel["type"] == 0 and channel["name"].lower() == channel_name.lower():
             return channel["id"]
     return None
 
