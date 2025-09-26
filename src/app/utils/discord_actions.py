@@ -80,7 +80,8 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     Create a thread in the specified channel for book discussion.
     The thread name and first message follow a custom format.
     """
-    channel_id = get_channel_id_by_name(guild_id, "megathreads")
+    # megathreads channel
+    channel_id = get_channel_id_by_name(guild_id, "test-commands")
     # Format: Thursday, September 19th 2025
     weekday = dt.strftime('%A')
     month = dt.strftime('%B')
@@ -120,12 +121,14 @@ def create_event_announcement(guild_id, payload):
     """
     Post an announcement in the 'announcements' channel about the upcoming book discussion.
     """
-    channel_id = get_channel_id_by_name(guild_id, "announcements")
+    # announcements channel
+    channel_id = get_channel_id_by_name(guild_id, "test-commands")
     if channel_id is None:
         raise ValueError("Announcements channel not found in guild")
 
     url = f"{DISCORD_API_BASE}/channels/{channel_id}/messages"
-    hf_response = {"content": hf_query(payload)}
+    message_content = f"@everyone\n\n{hf_query(payload)}"
+    hf_response = {"content": message_content}
 
     response = requests.post(url, headers=HEADERS, json=hf_response)
     response.raise_for_status()
