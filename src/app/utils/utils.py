@@ -50,21 +50,24 @@ def make_announcement_payload(context, book, section, dt, time_str):
             f"Let everyone know we have chosen to read {book} and will meet on {formatted_date} at {time_str}. "
             f"The section will be {section}. "
             "If you can't make it, leave your thoughts in the #megathreads channel. "
-            "Use at most three emoji related to the book or reading. Keep the message concise and not overly enthusiastic."
+            "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
+            "Keep the message concise and not overly enthusiastic."
         )
     elif context == "FOLLOW_UP":
         content = (
             f"You are a Discord bot. Write a short, friendly reminder for our book club. "
             f"We're reading {section} from {book} and meeting on {formatted_date} at {time_str}. "
             "If you can't make it, leave your thoughts in the #megathreads channel. "
-            "Use at most three emoji related to the book or reading. Keep the message concise and not overly enthusiastic."
+            "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
+            "Keep the message concise and not overly enthusiastic."
         )
     elif context == "FINISH":
         content = (
             f"You are a Discord bot. Write a short, friendly announcement for our book club. "
             f"Let everyone know we just finished reading {book}. "
             "Congratulate the group simply and encourage everyone to help pick the next book. "
-            "Use at most three emoji related to the book or reading. Keep the message concise and not overly enthusiastic."
+            "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
+            "Keep the message concise and not overly enthusiastic."
         )
     else:
         raise ValueError("Unknown context for announcement payload.")
