@@ -14,6 +14,73 @@ GREETINGS = [
 ]
 EMOJIS = ["👋", "😊", "🙌", "🌟", "🤗", "😄", "✨", "😎", "😁"]
 
+def make_hello_payload():
+    example_greetings = [
+        f"{random.choice(GREETINGS)} {random.choice(EMOJIS)}",
+        f"{random.choice(GREETINGS)} {random.choice(EMOJIS)}",
+        f"{random.choice(GREETINGS)} {random.choice(EMOJIS)}",
+    ]
+    examples = "\n".join(example_greetings)
+    return {
+        "messages": [
+            {
+                "role": "user",
+                "content": (
+                    "You are a Discord bot. Reply with a short, friendly hello message "
+                    "that you would send to a user in a Discord server. "
+                    "Each time, use a different greeting and a fun emoji that represents hello. "
+                    "Here are some examples:\n"
+                    f"{examples}\n"
+                    "Don't put a '\\n' at the end."
+                ),
+            }
+        ],
+        "model": "google/gemma-2-2b-it",
+    }
+
+def make_announcement_payload(context, book, section, dt, time_str):
+    weekday = dt.strftime('%A')
+    month = dt.strftime('%B')
+    day = get_ordinal(dt.day)
+    year = dt.year
+    formatted_date = f"{weekday}, {month} {day} {year}"
+    if context == "FIRST":
+        content = (
+            f"You are a Discord bot. Write a simple, friendly announcement for our book club. "
+            f"Let everyone know we have chosen to read {book} and will meet on {formatted_date} at {time_str}. "
+            f"The section will be {section}. "
+            "If you can't make it, leave your thoughts in the #megathreads channel. "
+            "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
+        )
+    elif context == "FOLLOW_UP":
+        content = (
+            f"You are a Discord bot. Write a short, friendly reminder for our book club. Include the bottom in the message"
+            f"We're reading {section} from {book} and meeting on {formatted_date} at {time_str}. "
+            "If you can't make it, leave your thoughts in the #megathreads channel. "
+            "Use 2 or 3 emojis related to the book we are reading or reading, spaced throughout the message."
+            "Keep the tone upbeat, encouraging, lighthearted. Encourage participation. Here is an example message: "
+            "Great discussion this week! The chapters for next week are 21-30 and meeting is on September 25th @ 9:30 PM. I encourage folks who could not make it to leave comments just as we did in week 1 in the megathreads and try your best to join in next week! Meetings run about 30-45 minutes. Happy reading 📖"
+        )
+    elif context == "FINISH":
+        content = (
+            f"You are a Discord bot. Write a short, friendly announcement for our book club. "
+            f"Let everyone know we just finished reading {book}. "
+            "Congratulate the group simply and encourage everyone to help pick the next book. "
+            "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
+        )
+    else:
+        raise ValueError("Unknown context for announcement payload.")
+
+    return {
+        "messages": [
+            {
+                "role": "user",
+                "content": content,
+            }
+        ],
+        "model": "google/gemma-2-2b-it",
+    }
+
 # Random Greeting generator for when a user uses /hello
 def random_greeting():
     message = random.choice(GREETINGS)
@@ -36,3 +103,11 @@ def is_valid_time_string(time_str):
     """
     pattern = r"^(0[1-9]|1[0-2]):[0-5][0-9] (AM|PM)$"
     return bool(re.match(pattern, time_str))
+
+def get_ordinal(n):
+    if 10 <= n % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')
+    return str(n) + suffix
+
