@@ -203,7 +203,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
             print(f"Failed to create discussion thread: {e}")
 
         try:
-            payload = make_announcement_payload("FOLLOW_UP", curr_title, curr_pages, discussion_date, discussion_time)
+            payload = make_announcement_payload("FOLLOW_UP", curr_title, curr_pages, dt_est, discussion_time)
             create_event_announcement(guild_id, payload)
         except Exception as e:
             print(f"Failed to create announcement: {e}")
@@ -261,7 +261,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     except Exception as e:
         print(f"Failed to create discussion thread: {e}")
     try:
-        payload = make_announcement_payload("FIRST", curr_title, curr_pages, discussion_date, discussion_time)
+        payload = make_announcement_payload("FIRST", selected_book['volumeInfo']['title'], pages_or_chapters, discussion_date, discussion_time)
         create_event_announcement(guild_id, payload)
     except Exception as e:
         print(f"Failed to create announcement: {e}")

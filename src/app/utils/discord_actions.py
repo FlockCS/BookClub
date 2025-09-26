@@ -1,7 +1,7 @@
 import os
 import requests
 from datetime import datetime
-from utils.utils import make_announcement_payload
+from utils.utils import make_announcement_payload, get_ordinal
 from utils.huggingface.textgeneration import query as hf_query
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
@@ -127,7 +127,8 @@ def create_event_announcement(guild_id, payload):
         raise ValueError("Announcements channel not found in guild")
 
     url = f"{DISCORD_API_BASE}/channels/{channel_id}/messages"
-    message_content = f"@everyone\n\n{hf_query(payload)}"
+    # message_content = f"@everyone\n\n{hf_query(payload)}"
+    message_content = f"{hf_query(payload)}"
     hf_response = {"content": message_content}
 
     response = requests.post(url, headers=HEADERS, json=hf_response)
@@ -146,11 +147,4 @@ def get_channel_id_by_name(guild_id, channel_name):
         if channel["type"] in [0, 5] and channel["name"].lower() == channel_name.lower():
             return channel["id"]
     return None
-
-def get_ordinal(n):
-    if 10 <= n % 100 <= 20:
-        suffix = 'th'
-    else:
-        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')
-    return str(n) + suffix
 
