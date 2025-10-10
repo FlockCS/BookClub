@@ -127,7 +127,7 @@ def create_event_announcement(guild_id, payload):
         raise ValueError("Announcements channel not found in guild")
 
     url = f"{DISCORD_API_BASE}/channels/{channel_id}/messages"
-    message_content = f"@everyone\n\n{hf_query(payload)}"
+    message_content = f"@Reader\n\n{hf_query(payload)}"
     # message_content = f"{hf_query(payload)}"
     hf_response = {"content": message_content}
 
