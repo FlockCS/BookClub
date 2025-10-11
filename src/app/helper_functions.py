@@ -216,7 +216,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         # schedule_reminder(event_id, guild_id, reminder_30m, "30m")
 
         # TEST REMINDER: 6 minutes from now (current UTC time)
-        test_reminder_time = datetime.now(pytz.utc) + timedelta(minutes=1)
+        test_reminder_time = datetime.now(pytz.utc) + timedelta(minutes=2)
         try:
             schedule_reminder(guild_id, test_reminder_time, "FIRST_REMINDER")
         except Exception as e:
@@ -288,7 +288,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     # schedule_reminder(event_id, guild_id, reminder_30m, "30m")
 
     # TEST REMINDER: 6 minutes from now (current UTC time)
-    test_reminder_time = datetime.now(pytz.utc) + timedelta(minutes=1)
+    test_reminder_time = datetime.now(pytz.utc) + timedelta(minutes=2)
     try:
         schedule_reminder(guild_id, test_reminder_time, "FIRST_REMINDER")
     except Exception as e:
