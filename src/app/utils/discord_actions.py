@@ -138,8 +138,10 @@ def create_event_announcement(guild_id, payload):
 
     url = f"{DISCORD_API_BASE}/channels/{channel_id}/messages"
     READER_ROLE_ID = "1394431409191387156"
-    message_content = f"<@&{READER_ROLE_ID}>\n\n{hf_query(payload)}"
-    # message_content = f"{hf_query(payload)}"
+    if ENVIRONMENT == "PROD":
+        message_content = f"<@&{READER_ROLE_ID}>\n\n{hf_query(payload)}"
+    else:
+        message_content = f"{hf_query(payload)}"
     hf_response = {"content": message_content}
 
     response = requests.post(url, headers=HEADERS, json=hf_response)
