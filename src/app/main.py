@@ -16,11 +16,11 @@ current_books_list = {}
 # flask set up
 app = Flask(__name__)
 asgi_app = WsgiToAsgi(app)
-handler = Mangum(asgi_app, lifespan="off")
+mangum_handler = Mangum(asgi_app, lifespan="off")  # Renamed to avoid conflict
 
 def handler(event, context):
     if "httpMethod" in event or "headers" in event:
-        return handler(event, context)
+        return mangum_handler(event, context)  # Call Mangum handler, not self
     elif "reminder_type" in event:
         send_reminder_announcement(event)
         return {"statusCode": 200, "body": "Reminder sent"}
