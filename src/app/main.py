@@ -19,9 +19,12 @@ asgi_app = WsgiToAsgi(app)
 mangum_handler = Mangum(asgi_app, lifespan="off")  # Renamed to avoid conflict
 
 def handler(event, context):
+    print("HANDLER event:", event)
     if "httpMethod" in event or "headers" in event:
+        print("HTTP event:", event)
         return mangum_handler(event, context)  # Call Mangum handler, not self
     elif "reminder_type" in event:
+        print("REMINDER event:", event)
         send_reminder_announcement(event)
         return {"statusCode": 200, "body": "Reminder sent"}
     else:
