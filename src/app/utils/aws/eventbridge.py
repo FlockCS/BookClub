@@ -6,15 +6,15 @@ events = boto3.client("events")
 
 lambda_arn = os.environ["REMINDER_LAMBDA_ARN"]
 
-def schedule_reminder(event_id, guild_id, reminder_time, reminder_type):
-    rule_name = f"BookClubReminder_{event_id}_{reminder_type}"
+def schedule_reminder(guild_id, reminder_time, reminder_type):
+    rule_name = f"BookClubReminder_{guild_id}_{reminder_type}"
     schedule_expression = reminder_time.strftime("cron(%M %H %d %m ? %Y)")
 
     events.put_rule(
         Name=rule_name,
         ScheduleExpression=schedule_expression,
         State="ENABLED",
-        Description=f"Book club reminder ({reminder_type}) for event {event_id}"
+        Description=f"Book club reminder ({reminder_type}) for event {guild_id}"
     )
 
     events.put_targets(
@@ -24,7 +24,6 @@ def schedule_reminder(event_id, guild_id, reminder_time, reminder_type):
                 "Id": "1",
                 "Arn": lambda_arn,
                 "Input": json.dumps({
-                    "event_id": event_id,
                     "guild_id": guild_id,
                     "reminder_type": reminder_type
                 })
