@@ -26,8 +26,8 @@ def send_reminder_announcement(event):
         return
     curr_title = book_details.get('title', 'Book')
     section = book_details.get('set_page_or_chapter', 'the selected section')
-    dt_str = book_details.get('date', '')  # e.g., "2025-10-11"
-    time_str = book_details.get('time', '')  # e.g., "09:30 PM"
+    dt_str = book_details.get('discussion_date')  # e.g., "2025-10-11"
+    time_str = book_details.get('discussion_time')  # e.g., "09:30 PM"
     # Parse to datetime object
     dt = datetime.strptime(f"{dt_str} {time_str}", "%m-%d-%Y %I:%M %p")
 
