@@ -13,6 +13,9 @@ HEADERS = {
     "Content-Type": "application/json"
 }
 
+def send_reminder_announcement(event):
+    print(event)
+
 def create_guild_event(guild_id, name, description, start_time, end_time=None, channel_id=None, location=None):
     """
     Create a Discord scheduled event in a guild.
