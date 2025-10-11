@@ -218,7 +218,7 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         # TEST REMINDER: 6 minutes from now (current UTC time)
         test_reminder_time = datetime.now(pytz.utc) + timedelta(minutes=6)
         try:
-            schedule_reminder(event_id, guild_id, test_reminder_time, "test")
+            schedule_reminder(new_event_id, guild_id, test_reminder_time, "test")
         except Exception as e:
             print(f"Failed to schedule reminder: {e}")
             return jsonify({"error": str(e)}), 500
