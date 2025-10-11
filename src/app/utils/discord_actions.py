@@ -7,6 +7,7 @@ from utils.huggingface.textgeneration import query as hf_query
 DISCORD_API_BASE = "https://discord.com/api/v10"
 
 BOT_TOKEN = os.environ.get("DISCORD_TOKEN") 
+ENVIRONMENT = os.environ.get("ENV") # Default to prod if not set
 
 HEADERS = {
     "Authorization": f"Bot {BOT_TOKEN}",
@@ -84,7 +85,10 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     The thread name and first message follow a custom format.
     """
     # megathreads channel
-    channel_id = get_channel_id_by_name(guild_id, "megathreads")
+    if ENVIRONMENT == "PROD":
+        channel_id = get_channel_id_by_name(guild_id, "megathreads")
+    else:
+        channel_id = get_channel_id_by_name(guild_id, "test-megathreads")
     # Format: Thursday, September 19th 2025
     weekday = dt.strftime('%A')
     month = dt.strftime('%B')
@@ -125,7 +129,10 @@ def create_event_announcement(guild_id, payload):
     Post an announcement in the 'announcements' channel about the upcoming book discussion.
     """
     # announcements channel
-    channel_id = get_channel_id_by_name(guild_id, "announcements")
+    if ENVIRONMENT == "PROD":
+        channel_id = get_channel_id_by_name(guild_id, "announcements")
+    else:
+        channel_id = get_channel_id_by_name(guild_id, "test-announcements")
     if channel_id is None:
         raise ValueError("Announcements channel not found in guild")
 
