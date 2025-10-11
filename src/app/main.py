@@ -18,8 +18,6 @@ app = Flask(__name__)
 asgi_app = WsgiToAsgi(app)
 handler = Mangum(asgi_app, lifespan="off")
 
-handler = Mangum(app)
-
 def handler(event, context):
     if "httpMethod" in event or "headers" in event:
         return handler(event, context)
