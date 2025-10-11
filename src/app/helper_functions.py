@@ -209,6 +209,16 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         except Exception as e:
             print(f"Failed to create announcement: {e}")
 
+        # create reminders
+        # reminder_1d = dt_utc - timedelta(days=1)
+        # reminder_30m = dt_utc - timedelta(minutes=30)
+        # schedule_reminder(event_id, guild_id, reminder_1d, "1d")
+        # schedule_reminder(event_id, guild_id, reminder_30m, "30m")
+
+        # TEST REMINDER: 6 minutes from now (current UTC time)
+        test_reminder_time = datetime.now(pytz.utc) + timedelta(minutes=6)
+        schedule_reminder(event_id, guild_id, test_reminder_time, "test")
+
         return jsonify({
             "type": 4,
             "data": {
