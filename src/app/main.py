@@ -5,6 +5,7 @@ from discord_interactions import verify_key_decorator
 from helper_functions import handle_book_delete, handle_book_select, handle_schedule_select, handle_confirm_book_delete, handle_finish_book
 from command_handler import command_handler
 from config import DISCORD_PUBLIC_KEY, IN_DEVELOPMENT
+from utils.discord_actions import send_reminder_announcement
 
 # @TODO: Convert this to use redis instead
 # pending selections
@@ -15,7 +16,19 @@ current_books_list = {}
 # flask set up
 app = Flask(__name__)
 asgi_app = WsgiToAsgi(app)
-handler = Mangum(asgi_app, lifespan="off")
+mangum_handler = Mangum(asgi_app, lifespan="off")  # Renamed to avoid conflict
+
+def handler(event, context):
+    print("HANDLER event:", event)
+    if "httpMethod" in event or "headers" in event:
+        print("HTTP event:", event)
+        return mangum_handler(event, context)  # Call Mangum handler, not self
+    elif "reminder_type" in event:
+        print("REMINDER event:", event)
+        send_reminder_announcement(event)
+        return {"statusCode": 200, "body": "Reminder sent"}
+    else:
+        return {"statusCode": 400, "body": "Unknown event type"}
 
 # post request method
 @app.route("/", methods=["POST"])

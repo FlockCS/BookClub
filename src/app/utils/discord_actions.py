@@ -3,15 +3,38 @@ import requests
 from datetime import datetime
 from utils.utils import make_announcement_payload, get_ordinal
 from utils.huggingface.textgeneration import query as hf_query
+from utils.aws.dynamodb import get_current_book
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
 
 BOT_TOKEN = os.environ.get("DISCORD_TOKEN") 
+ENVIRONMENT = os.environ.get("ENV") # Default to prod if not set
 
 HEADERS = {
     "Authorization": f"Bot {BOT_TOKEN}",
     "Content-Type": "application/json"
 }
+
+def send_reminder_announcement(event):
+    print("Received event:", event)
+    guild_id = event["guild_id"]
+    context = event["reminder_type"]
+    # Fetch event details from DynamoDB
+    book_details = get_current_book(guild_id)
+    if not book_details:
+        print(f"No book details found for guild ID {guild_id}")
+        return
+    curr_title = book_details.get('title', 'Book')
+    section = book_details.get('set_page_or_chapter', 'the selected section')
+    dt_str = book_details.get('discussion_date')  # e.g., "2025-10-11"
+    time_str = book_details.get('discussion_time')  # e.g., "09:30 PM"
+    # Parse to datetime object
+    dt = datetime.strptime(f"{dt_str} {time_str}", "%m-%d-%Y %I:%M %p")
+
+    payload = make_announcement_payload(context, curr_title, section, dt, time_str)
+    return create_event_announcement(guild_id, payload)
+    # Use event_details to generate and send the reminder
+
 
 def create_guild_event(guild_id, name, description, start_time, end_time=None, channel_id=None, location=None):
     """
@@ -81,7 +104,10 @@ def create_discussion_thread(guild_id, thread_name, book_title, dt, section):
     The thread name and first message follow a custom format.
     """
     # megathreads channel
-    channel_id = get_channel_id_by_name(guild_id, "megathreads")
+    if ENVIRONMENT == "PROD":
+        channel_id = get_channel_id_by_name(guild_id, "megathreads")
+    else:
+        channel_id = get_channel_id_by_name(guild_id, "test-megathreads")
     # Format: Thursday, September 19th 2025
     weekday = dt.strftime('%A')
     month = dt.strftime('%B')
@@ -122,14 +148,19 @@ def create_event_announcement(guild_id, payload):
     Post an announcement in the 'announcements' channel about the upcoming book discussion.
     """
     # announcements channel
-    channel_id = get_channel_id_by_name(guild_id, "announcements")
+    if ENVIRONMENT == "PROD":
+        channel_id = get_channel_id_by_name(guild_id, "announcements")
+    else:
+        channel_id = get_channel_id_by_name(guild_id, "test-announcements")
     if channel_id is None:
         raise ValueError("Announcements channel not found in guild")
 
     url = f"{DISCORD_API_BASE}/channels/{channel_id}/messages"
     READER_ROLE_ID = "1394431409191387156"
-    message_content = f"<@&{READER_ROLE_ID}>\n\n{hf_query(payload)}"
-    # message_content = f"{hf_query(payload)}"
+    if ENVIRONMENT == "PROD":
+        message_content = f"<@&{READER_ROLE_ID}>\n\n{hf_query(payload)}"
+    else:
+        message_content = f"{hf_query(payload)}"
     hf_response = {"content": message_content}
 
     response = requests.post(url, headers=HEADERS, json=hf_response)

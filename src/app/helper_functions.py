@@ -3,7 +3,8 @@ from utils.utils import is_valid_future_date, is_valid_time_string, make_announc
 from utils.aws.dynamodb import delete_current_book, put_book, get_current_book, get_cached_book_list, update_discussion_date_current_book, finish_current_book
 from utils.discord_actions import create_event_announcement, create_discussion_thread, create_guild_event, update_guild_event, delete_guild_event
 import pytz
-from datetime import datetime, time as dt_time
+from datetime import datetime, time as dt_time, timedelta
+from utils.aws.eventbridge import schedule_reminder
 eastern = pytz.timezone('America/New_York')
 
 
@@ -208,6 +209,28 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         except Exception as e:
             print(f"Failed to create announcement: {e}")
 
+        # create reminders
+        reminder_1d = dt_utc - timedelta(days=1)
+        reminder_30m = dt_utc - timedelta(minutes=30)
+        try:
+            schedule_reminder(guild_id, reminder_1d, "1d")
+        except Exception as e:
+            print(f"Failed to schedule reminder: {e}")
+            return jsonify({"error": str(e)}), 500
+        try:
+            schedule_reminder(guild_id, reminder_30m, "30m")
+        except Exception as e:
+            print(f"Failed to schedule reminder: {e}")
+            return jsonify({"error": str(e)}), 500
+
+        # # TEST REMINDER: 6 minutes from now (current UTC time)
+        # test_reminder_time = datetime.now(pytz.utc) + timedelta(minutes=2)
+        # try:
+        #     schedule_reminder(guild_id, test_reminder_time, "FIRST_REMINDER")
+        # except Exception as e:
+        #     print(f"Failed to schedule reminder: {e}")
+        #     return jsonify({"error": str(e)}), 500
+
         return jsonify({
             "type": 4,
             "data": {
@@ -265,7 +288,21 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         create_event_announcement(guild_id, payload)
     except Exception as e:
         print(f"Failed to create announcement: {e}")
-    
+
+    # create reminders
+    reminder_1d = dt_utc - timedelta(days=1)
+    reminder_30m = dt_utc - timedelta(minutes=30)
+    try:
+        schedule_reminder(guild_id, reminder_1d, "1d")
+    except Exception as e:
+        print(f"Failed to schedule reminder: {e}")
+        return jsonify({"error": str(e)}), 500
+    try:
+        schedule_reminder(guild_id, reminder_30m, "30m")
+    except Exception as e:
+        print(f"Failed to schedule reminder: {e}")
+        return jsonify({"error": str(e)}), 500
+
     return jsonify({
         "type": 4,
         "data": {
