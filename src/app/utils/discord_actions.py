@@ -26,8 +26,10 @@ def send_reminder_announcement(event):
         return
     curr_title = book_details.get('title', 'Book')
     section = book_details.get('set_page_or_chapter', 'the selected section')
-    dt = book_details.get('discussion_date')
-    time_str = book_details.get('discussion_time', 'the scheduled time')
+    dt_str = book_details.get('date', '')  # e.g., "2025-10-11"
+    time_str = book_details.get('time', '')  # e.g., "09:30 PM"
+    # Parse to datetime object
+    dt = datetime.strptime(f"{dt_str} {time_str}", "%Y-%m-%d %I:%M %p")
 
     payload = make_announcement_payload(context, curr_title, section, dt, time_str)
     return create_event_announcement(guild_id, payload)

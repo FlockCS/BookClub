@@ -54,7 +54,7 @@ def make_announcement_payload(context, book, section, dt, time_str):
         )
     elif context == "FOLLOW_UP":
         content = (
-            f"You are a Discord bot. Write a short, friendly reminder for our book club. Include the bottom in the message"
+            f"You are a Discord bot. Write a short, friendly announcement for our book club. Include the bottom in the message"
             f"We're reading {section} from {book} and meeting on {formatted_date} at {time_str}. "
             "If you can't make it, leave your thoughts in the #megathreads channel. "
             "Use 2 or 3 emojis related to the book we are reading or reading, spaced throughout the message."
