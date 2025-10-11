@@ -3,6 +3,7 @@ import requests
 from datetime import datetime
 from utils.utils import make_announcement_payload, get_ordinal
 from utils.huggingface.textgeneration import query as hf_query
+from utils.aws.dynamodb import get_current_book
 
 DISCORD_API_BASE = "https://discord.com/api/v10"
 
@@ -15,7 +16,23 @@ HEADERS = {
 }
 
 def send_reminder_announcement(event):
-    print(event)
+    print("Received event:", event)
+    guild_id = event["guild_id"]
+    context = event["reminder_type"]
+    # Fetch event details from DynamoDB
+    book_details = get_current_book(guild_id)
+    if not book_details:
+        print(f"No book details found for guild ID {guild_id}")
+        return
+    curr_title = book_details.get('title', 'Book')
+    section = book_details.get('set_page_or_chapter', 'the selected section')
+    dt = book_details.get('discussion_date')
+    time_str = book_details.get('discussion_time', 'the scheduled time')
+
+    payload = make_announcement_payload(context, curr_title, section, dt, time_str)
+    return create_event_announcement(guild_id, payload)
+    # Use event_details to generate and send the reminder
+
 
 def create_guild_event(guild_id, name, description, start_time, end_time=None, channel_id=None, location=None):
     """

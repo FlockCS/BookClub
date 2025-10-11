@@ -68,6 +68,22 @@ def make_announcement_payload(context, book, section, dt, time_str):
             "Congratulate the group simply and encourage everyone to help pick the next book. "
             "Use 2 or 3 emojis related to books or reading, spaced throughout the message. "
         )
+    elif context == "FIRST_REMINDER":
+        content = (
+            f"You are a Discord bot. Write a short, friendly reminder for our book club that our meeting is tomorrow. Include the bottom in the message"
+            f"We're reading {section} from {book} and meeting on {formatted_date} at {time_str}. "
+            "If you can't make it, leave your thoughts in the #megathreads channel. "
+            "Use 2 or 3 emojis related to the book we are reading or reading, spaced throughout the message."
+            "Keep the tone upbeat, encouraging, lighthearted. Encourage participation."
+        )
+    elif context == "HOUR_REMINDER":
+        content = (
+            f"You are a Discord bot. Write a short, friendly reminder for our book club that our meeting is in 30 minutes. Include the bottom in the message"
+            f"We're reading {section} from {book} and meeting on {formatted_date} at {time_str}. "
+            "If you can't make it, leave your thoughts in the #megathreads channel. "
+            "Use 2 or 3 emojis related to the book we are reading or reading, spaced throughout the message."
+            "Keep the tone upbeat, encouraging, lighthearted. Encourage participation."
+        )
     else:
         raise ValueError("Unknown context for announcement payload.")
 
