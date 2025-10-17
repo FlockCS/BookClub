@@ -213,12 +213,12 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
         reminder_1d = dt_utc - timedelta(days=1)
         reminder_30m = dt_utc - timedelta(minutes=30)
         try:
-            schedule_reminder(guild_id, reminder_1d, "1d")
+            schedule_reminder(guild_id, reminder_1d, "FIRST_REMINDER")
         except Exception as e:
             print(f"Failed to schedule reminder: {e}")
             return jsonify({"error": str(e)}), 500
         try:
-            schedule_reminder(guild_id, reminder_30m, "30m")
+            schedule_reminder(guild_id, reminder_30m, "HOUR_REMINDER")
         except Exception as e:
             print(f"Failed to schedule reminder: {e}")
             return jsonify({"error": str(e)}), 500
@@ -293,12 +293,12 @@ def handle_schedule_select(raw_request, pending_selections, reschedule):
     reminder_1d = dt_utc - timedelta(days=1)
     reminder_30m = dt_utc - timedelta(minutes=30)
     try:
-        schedule_reminder(guild_id, reminder_1d, "1d")
+        schedule_reminder(guild_id, reminder_1d, "FIRST_REMINDER")
     except Exception as e:
         print(f"Failed to schedule reminder: {e}")
         return jsonify({"error": str(e)}), 500
     try:
-        schedule_reminder(guild_id, reminder_30m, "30m")
+        schedule_reminder(guild_id, reminder_30m, "HOUR_REMINDER")
     except Exception as e:
         print(f"Failed to schedule reminder: {e}")
         return jsonify({"error": str(e)}), 500
